@@ -11,8 +11,8 @@ button{font:inherit;color:inherit}
 .top{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#0b0e15,#07090d)}
 .brand{display:flex;align-items:center;gap:10px}
 .brand img{width:26px;height:26px}
-.brand b{letter-spacing:.16em;font-size:16px}
-.brand .sub{color:var(--ink3);font-size:12.5px}
+.brand b{letter-spacing:.06em;font-size:16px;white-space:nowrap}
+.brand .sub{color:var(--ink3);font-size:12.5px;white-space:nowrap}
 .pills{display:flex;align-items:center;gap:8px}
 .pill{font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line2);color:var(--ink2);white-space:nowrap}
 .pill.live i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--idle);margin-right:6px;vertical-align:1px}
