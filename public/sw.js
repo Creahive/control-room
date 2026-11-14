@@ -1,4 +1,4 @@
-/* CMD service worker. Only for installability and an offline notice:
+/* Control Room service worker. Only for installability and an offline notice:
    - caches ONLY the public, data-free files below (icons, favicon, manifest, offline page);
    - page loads go to the network every time; the cached offline page shows only when the network fails;
    - everything else (/api/, the live stream, the terminal, the app's own code behind sign-in) is never

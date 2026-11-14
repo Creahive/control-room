@@ -35,7 +35,7 @@ const extra = findConfigDirs({ home: F.home, env: { CLAUDE_CONFIG_DIR: path.join
 assert.ok(extra.includes(path.join(F.home, '.claude-work')));
 // an empty machine: nothing found, no crash
 const os = require('os'), fs = require('fs');
-const bare = fs.mkdtempSync(path.join(os.tmpdir(), 'cmd-hub-bare-'));
+const bare = fs.mkdtempSync(path.join(os.tmpdir(), 'control-room-bare-'));
 const r0 = detect({ home: bare, env: { PATH: '' }, proc: path.join(bare, 'noproc'), tmuxPanes: {}, exec: () => null });
 assert.deepStrictEqual([r0.configDirs.length, r0.running.length, r0.projects.length, r0.tmux.available], [0, 0, 0, false]);
 console.log('detect ok');

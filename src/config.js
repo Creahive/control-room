@@ -1,8 +1,8 @@
 'use strict';
-/* Configuration: one JSON file plus CMD_HUB_* environment overrides.
+/* Configuration: one JSON file plus CONTROL_ROOM_* environment overrides.
  *
- *   config file   $CMD_HUB_CONFIG, else ~/.config/cmd-hub/config.json
- *   data dir      config.dataDir, else $CMD_HUB_DATA, else ~/.local/share/cmd-hub
+ *   config file   $CONTROL_ROOM_CONFIG, else ~/.config/control-room/config.json
+ *   data dir      config.dataDir, else $CONTROL_ROOM_DATA, else ~/.local/share/control-room
  *
  * Everything has a neutral default, so the hub starts with no file at all (and then shows the setup wizard). */
 const fs = require('fs');
@@ -13,13 +13,13 @@ const HOME = os.homedir();
 const expand = p => (typeof p === 'string' && p.startsWith('~') ? path.join(HOME, p.slice(1)) : p);
 
 const DEFAULTS = {
-  dataDir: '~/.local/share/cmd-hub',
+  dataDir: '~/.local/share/control-room',
   bind: '127.0.0.1',
   port: 3070,
   publicUrl: '',                 // e.g. https://hub.example.com: invite links, Secure cookies, Origin check
   home: '~',                     // working dir of the top agents (brain, front desks)
   locale: 'en',
-  tmux: { session: 'cmd', cols: 150, rows: 44, socket: '' },   // socket: run agents on a separate tmux server (tmux -L <name>)
+  tmux: { session: 'control-room', cols: 150, rows: 44, socket: '' },   // socket: run agents on a separate tmux server (tmux -L <name>)
   claude: {
     bin: 'claude',
     frontModel: '',              // model for front desks ('' = Claude Code default)
@@ -55,7 +55,7 @@ function merge(a, b) {
 }
 
 function configPath(env = process.env) {
-  return expand(env.CMD_HUB_CONFIG || path.join(HOME, '.config', 'cmd-hub', 'config.json'));
+  return expand(env.CONTROL_ROOM_CONFIG || path.join(HOME, '.config', 'control-room', 'config.json'));
 }
 
 function load(env = process.env) {
@@ -63,14 +63,14 @@ function load(env = process.env) {
   let raw = {}, exists = false;
   try { raw = JSON.parse(fs.readFileSync(file, 'utf8')); exists = true; } catch (e) { if (e.code !== 'ENOENT') throw new Error(`config ${file}: ${e.message}`); }
   const c = merge(DEFAULTS, raw);
-  if (env.CMD_HUB_DATA) c.dataDir = env.CMD_HUB_DATA;
-  if (env.CMD_HUB_PORT) c.port = +env.CMD_HUB_PORT;
-  if (env.CMD_HUB_BIND) c.bind = env.CMD_HUB_BIND;
-  if (env.CMD_HUB_PUBLIC_URL) c.publicUrl = env.CMD_HUB_PUBLIC_URL;
-  if (env.CMD_HUB_TMUX) c.tmux.session = env.CMD_HUB_TMUX;
-  if (env.CMD_HUB_CLAUDE_BIN) c.claude.bin = env.CMD_HUB_CLAUDE_BIN;
-  if (env.CMD_HUB_DEMO === '1') c.demo = true;
-  if (env.CMD_HUB_SMTP_PASS) c.mail.smtp.pass = env.CMD_HUB_SMTP_PASS;
+  if (env.CONTROL_ROOM_DATA) c.dataDir = env.CONTROL_ROOM_DATA;
+  if (env.CONTROL_ROOM_PORT) c.port = +env.CONTROL_ROOM_PORT;
+  if (env.CONTROL_ROOM_BIND) c.bind = env.CONTROL_ROOM_BIND;
+  if (env.CONTROL_ROOM_PUBLIC_URL) c.publicUrl = env.CONTROL_ROOM_PUBLIC_URL;
+  if (env.CONTROL_ROOM_TMUX) c.tmux.session = env.CONTROL_ROOM_TMUX;
+  if (env.CONTROL_ROOM_CLAUDE_BIN) c.claude.bin = env.CONTROL_ROOM_CLAUDE_BIN;
+  if (env.CONTROL_ROOM_DEMO === '1') c.demo = true;
+  if (env.CONTROL_ROOM_SMTP_PASS) c.mail.smtp.pass = env.CONTROL_ROOM_SMTP_PASS;
   c.dataDir = path.resolve(expand(c.dataDir));
   c.home = path.resolve(expand(c.home));
   c.accounts = (c.accounts || []).map(a => ({ ...a, configDir: path.resolve(expand(a.configDir || '~/.claude')) }));

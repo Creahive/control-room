@@ -1,4 +1,4 @@
-# cmd-hub HTTP API
+# Control Room HTTP API
 
 The hub listens on `bind:port` from the config (default `127.0.0.1:3070`). Two surfaces:
 

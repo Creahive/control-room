@@ -50,7 +50,7 @@ module.exports = function agents(hub) {
     }
     const pf = path.join(PROMPTS, n.id + '.md');
     fs.writeFileSync(pf, hub.promptFor(n), { mode: 0o600 });
-    const env = [`CMD_AGENT_ID=${n.id}`, `CMD_HUB_DATA=${shq(cfg.dataDir)}`, `PATH=${shq(path.join(__dirname, '..', 'bin'))}:"$PATH"`];
+    const env = [`CMD_AGENT_ID=${n.id}`, `CONTROL_ROOM_DATA=${shq(cfg.dataDir)}`, `PATH=${shq(path.join(__dirname, '..', 'bin'))}:"$PATH"`];
     if (acc && path.resolve(acc.configDir) !== path.join(require('os').homedir(), '.claude')) env.push(`CLAUDE_CONFIG_DIR=${shq(acc.configDir)}`);
     if (cfg.claude.tmpDir) env.push(`CLAUDE_CODE_TMPDIR=${shq(cfg.claude.tmpDir)}`);
     const model = n.model ? ' --model ' + shq(n.model) : n.role === 'front' && cfg.claude.frontModel ? ' --model ' + shq(cfg.claude.frontModel) : '';

@@ -18,7 +18,7 @@ function parse(argv) {
   }
   return { pos, fl };
 }
-const HELP = `cmd: talk to the cmd-hub
+const HELP = `cmd: talk to Control Room
   cmd tree                                   every agent, its id, state and parent
   cmd spawn --name "<name>" --role <lead|project|worker> [--cwd <dir>] "<brief>"
   cmd send [--urgent] [--title "<t>"] <id|name> "<message>"   (start an info-only message with "FYI:")
@@ -40,7 +40,7 @@ const HELP = `cmd: talk to the cmd-hub
 
 function call(cfg, verb, payload) {
   const tokF = path.join(cfg.dataDir, 'internal.token');
-  let token; try { token = fs.readFileSync(tokF, 'utf8').trim(); } catch { throw new Error(`no hub token at ${tokF}: is the hub running with this data dir? (CMD_HUB_DATA)`); }
+  let token; try { token = fs.readFileSync(tokF, 'utf8').trim(); } catch { throw new Error(`no hub token at ${tokF}: is the hub running with this data dir? (CONTROL_ROOM_DATA)`); }
   const data = JSON.stringify({ me: process.env.CMD_AGENT_ID || 'you', ...payload });
   return new Promise((ok, fail) => {
     const r = http.request({ host: cfg.bind === '0.0.0.0' ? '127.0.0.1' : cfg.bind, port: cfg.port, path: '/internal/' + verb, method: 'POST',
@@ -71,7 +71,7 @@ async function main() {
   if (!verb || verb === 'help' || verb === '-h' || verb === '--help') return console.log(HELP);
   if (verb === 'init') return require(path.join(ROOT, 'src', 'cli-init'))(fl);
   if (verb === 'passwd') return require(path.join(ROOT, 'src', 'cli-init')).passwd();
-  if (verb === 'demo') { require('child_process').spawn(process.execPath, [path.join(ROOT, 'bin', 'cmd-hub'), '--demo'], { stdio: 'inherit' }); return; }
+  if (verb === 'demo') { require('child_process').spawn(process.execPath, [path.join(ROOT, 'bin', 'control-room'), '--demo'], { stdio: 'inherit' }); return; }
   const cfg = CONFIG.load();
   const out = (r, f) => console.log(fl.json ? JSON.stringify(r, null, 1) : f(r));
   const text = pos.join(' ');

@@ -14,8 +14,8 @@ const ITEM_KINDS = new Set(['change', 'improve', 'seo', 'site', '', undefined]);
 const STOP1 = /^(R2|S3|V8|E2|Q[1-4]|P[0-4])$/;
 const itemOf = title => { const t = String(title || ''), m = t.match(ITEM_RE), o = !m && t.match(ITEM1_RE);
   return m ? m[1] : o && !STOP1.test(o[1]) ? o[1] : null; };
-// system words keep an entry listed even when it names an item id ("cmd-hub step 2 #2: header chips")
-const SYSTEM_RE = /\b(cmd-hub|nginx|apache|csf|cron|systemd|pm2|dns|ssl|deleted?|archived?|design|theme)\b/i;
+// system words keep an entry listed even when it names an item id ("control-room step 2 #2: header chips")
+const SYSTEM_RE = /\b(control-room|nginx|apache|csf|cron|systemd|pm2|dns|ssl|deleted?|archived?|design|theme)\b/i;
 const isContent = (it, systemRe = SYSTEM_RE) => !!it && !systemRe.test(it.title || '') && (it.kind === 'content' || (ITEM_KINDS.has(it.kind) && !!itemOf(it.title)));
 const dayOf = (ms, tz = 'UTC') => tzDay(ms, tz);
 const DOMAIN_RE = /\b([a-z0-9][a-z0-9-]*\.(?:com|net|org|io|so|ai|co|app|dev|me|info|us))\b/i;

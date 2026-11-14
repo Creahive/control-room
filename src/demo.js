@@ -1,5 +1,5 @@
 'use strict';
-/* Demo mode (CMD_HUB_DEMO=1 or `cmd-hub --demo`): a made-up fleet with no Claude and no tmux behind it, for trying the
+/* Demo mode (CONTROL_ROOM_DEMO=1 or `control-room --demo`): a made-up fleet with no Claude and no tmux behind it, for trying the
  * UI and for README screenshots. Agents "answer" with canned lines, pass made-up messages around and spend made-up
  * tokens. Everything here is fiction; nothing is read from the machine. */
 const { now } = require('./util');

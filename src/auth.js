@@ -56,7 +56,7 @@ module.exports = function auth(hub) {
   const tries = new Map(), mfaTickets = new Map();
   const saveUsers = () => writeJSON(USERS_F, users);
   const saveSessions = () => writeJSON(SESS_F, sessions);
-  const issuer = cfg.publicUrl ? new URL(cfg.publicUrl).hostname : 'cmd-hub';
+  const issuer = cfg.publicUrl ? new URL(cfg.publicUrl).hostname : 'Control Room';
   const secure = /^https:/.test(cfg.publicUrl || '');
 
   const admin = () => Object.values(users).find(u => u.admin && u.hash) || null;
@@ -159,8 +159,8 @@ module.exports = function auth(hub) {
     const link = (cfg.publicUrl || `http://${cfg.bind === '0.0.0.0' ? 'localhost' : cfg.bind}:${cfg.port}`).replace(/\/$/, '') + '/invite#' + token;
     let sent = false;
     if (u.email && hub.mailer.mode !== 'console') {
-      await hub.mailer.send(u.email, 'Your invite to cmd-hub',
-        `Hello ${u.name},\n\nYou were invited to cmd-hub. Open this link within ${INVITE_HOURS} hours to set your password and two-step sign-in:\n\n${link}\n\nThe link works once.\n`);
+      await hub.mailer.send(u.email, 'Your invite to Control Room',
+        `Hello ${u.name},\n\nYou were invited to Control Room. Open this link within ${INVITE_HOURS} hours to set your password and two-step sign-in:\n\n${link}\n\nThe link works once.\n`);
       sent = true;
     } else console.log(`[invite] link for ${u.name} (valid ${INVITE_HOURS} h, show it to them yourself)`);
     u.invite.sentAt = now(); saveUsers();

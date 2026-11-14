@@ -112,7 +112,7 @@ function applyHook(plan, t = Date.now()) {
 function installCli(binDir = path.join(os.homedir(), '.local', 'bin')) {
   fs.mkdirSync(binDir, { recursive: true });
   const done = [];
-  for (const name of ['cmd', 'heavy', 'cmd-hub']) {
+  for (const name of ['cmd', 'heavy', 'control-room']) {
     const to = path.join(binDir, name), from = path.join(ROOT, 'bin', name);
     let cur = null; try { cur = fs.readlinkSync(to); } catch {}
     if (cur === from) { done.push({ name, to, state: 'already linked' }); continue; }

@@ -14,7 +14,7 @@ const all = [
   e('c8', 'docs-site', 'example.com C364: next day guide', 'change', 4 * 3600e3),
   e('c9', 'ops', 'nginx: H1 fix on example.org', 'fix', 8),
   e('c10', 'x', 'a content row with no id', 'content', 9),
-  e('c11', 'ops', 'cmd-hub restart: bb91ad6 live (step 2 #3 inbox)', 'deploy', 10),
+  e('c11', 'ops', 'control-room restart: bb91ad6 live (step 2 #3 inbox)', 'deploy', 10),
 ];
 const siteOf = it => ({ 'shop-site': 'shop.example.net', x: 'x.example.net' })[it.by] || null;
 const r = G.group(all, siteOf);
@@ -31,7 +31,7 @@ assert.strictEqual(G.itemOf('example.org: G116de card'), 'G116de');
 assert.strictEqual(G.itemOf('T-1: x'), null); assert.strictEqual(G.itemOf('U9 corrected calculator'), 'U9');
 assert.strictEqual(G.itemOf('shop U10c lead verify'), 'U10c'); assert.strictEqual(G.itemOf('L1 live: links'), 'L1');
 assert.strictEqual(G.itemOf('nginx: H1 fix'), null);
-assert.strictEqual(G.isContent({ kind: 'improve', title: 'cmd-hub step 2 #2: header chips' }), false);
+assert.strictEqual(G.isContent({ kind: 'improve', title: 'control-room step 2 #2: header chips' }), false);
 assert.strictEqual(G.isContent({ kind: 'change', title: 'example.com C362: new guide' }), true);
 assert.strictEqual(G.isContent({ kind: 'change', title: 'example.com C362: new guide' }, /\bguide\b/), false, 'systemRe is configurable');
 assert.strictEqual(G.itemOf('R2 backup'), null); assert.strictEqual(G.itemOf('P1 fix: login'), null); assert.strictEqual(G.itemOf('title/H1/meta'), null); assert.strictEqual(G.itemOf('improve 55: x'), null);

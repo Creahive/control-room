@@ -15,10 +15,10 @@ module.exports = function setupRoutes(hub) {
   if (hub.demo || (cfg.exists && !hub.setupNeeded())) st.done = true;   // an existing config + admin: nothing to set up
   const save = () => writeJSON(F, st);
   let lastReport = null, lastPlan = null;
-  // CMD_HUB_DETECT_HOME / CMD_HUB_DETECT_PROC point detection at a fixture (tests); CMD_HUB_CLI_DIR is where the CLI is linked
-  const det = () => detect({ bin: cfg.claude.bin, home: process.env.CMD_HUB_DETECT_HOME || undefined, proc: process.env.CMD_HUB_DETECT_PROC || undefined,
-    env: process.env.CMD_HUB_DETECT_HOME ? { PATH: process.env.PATH } : undefined });
-  const cliDir = () => process.env.CMD_HUB_CLI_DIR || path.join(require('os').homedir(), '.local', 'bin');
+  // CONTROL_ROOM_DETECT_HOME / CONTROL_ROOM_DETECT_PROC point detection at a fixture (tests); CONTROL_ROOM_CLI_DIR is where the CLI is linked
+  const det = () => detect({ bin: cfg.claude.bin, home: process.env.CONTROL_ROOM_DETECT_HOME || undefined, proc: process.env.CONTROL_ROOM_DETECT_PROC || undefined,
+    env: process.env.CONTROL_ROOM_DETECT_HOME ? { PATH: process.env.PATH } : undefined });
+  const cliDir = () => process.env.CONTROL_ROOM_CLI_DIR || path.join(require('os').homedir(), '.local', 'bin');
   hub.setupDone = () => !!st.done;
 
   return async function route(req, res, p) {

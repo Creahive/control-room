@@ -25,7 +25,7 @@ assert.deepStrictEqual(prop.config.projects.map(p => p.name), ['shop', 'blog']);
 const p2 = OB.proposal(r, { projects: [F.blog], adopt: [] });
 assert.deepStrictEqual(p2.nodes.map(n => n.id), ['brain', 'front', 'blog']);
 // zero detected: still BRAIN + front desk on the default account
-const bare = fs.mkdtempSync(path.join(os.tmpdir(), 'cmd-hub-bare-'));
+const bare = fs.mkdtempSync(path.join(os.tmpdir(), 'control-room-bare-'));
 const p0 = OB.proposal({ home: bare, configDirs: [], running: [], projects: [] });
 assert.deepStrictEqual(p0.nodes.map(n => n.id), ['brain', 'front']);
 assert.strictEqual(p0.config.accounts[0].configDir, path.join(bare, '.claude'));
@@ -53,7 +53,7 @@ assert.strictEqual(s.theme, 'dark'); assert.ok(OB.hasGuard(s));
 assert.strictEqual(fs.readFileSync(res.hooks[0].backup, 'utf8'), before);
 assert.ok(!fs.existsSync(pm.file), 'an unticked hook is not written');
 const links = Object.fromEntries(res.cli.map(c => [c.name, c.state]));
-assert.deepStrictEqual(links, { cmd: 'linked', heavy: 'skipped: a different file is already there', 'cmd-hub': 'linked' });
+assert.deepStrictEqual(links, { cmd: 'linked', heavy: 'skipped: a different file is already there', 'control-room': 'linked' });
 assert.strictEqual(fs.readFileSync(path.join(bin, 'heavy'), 'utf8'), 'someone else\'s');
 // a second plan sees the hook already there
 assert.ok(!OB.hookPlan(prop.config.accounts).find(h => h.account === 'work').change);

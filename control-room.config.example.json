@@ -1,11 +1,11 @@
 {
-  "_comment": "Copy to ~/.config/cmd-hub/config.json (or point CMD_HUB_CONFIG at it). Every key is optional; the setup wizard (/setup or `cmd init`) writes accounts, roles and projects for you.",
-  "dataDir": "~/.local/share/cmd-hub",
+  "_comment": "Copy to ~/.config/control-room/config.json (or point CONTROL_ROOM_CONFIG at it). Every key is optional; the setup wizard (/setup or `cmd init`) writes accounts, roles and projects for you.",
+  "dataDir": "~/.local/share/control-room",
   "bind": "127.0.0.1",
   "port": 3070,
   "publicUrl": "",
   "home": "~",
-  "tmux": { "session": "cmd", "cols": 150, "rows": 44, "socket": "" },
+  "tmux": { "session": "control-room", "cols": 150, "rows": 44, "socket": "" },
   "claude": {
     "bin": "claude",
     "frontModel": "",
@@ -30,8 +30,8 @@
   "prices": {},
   "mail": {
     "mode": "console",
-    "from": "cmd-hub@example.com",
-    "smtp": { "host": "smtp.example.com", "port": 587, "secure": false, "user": "cmd-hub@example.com" },
+    "from": "control-room@example.com",
+    "smtp": { "host": "smtp.example.com", "port": 587, "secure": false, "user": "control-room@example.com" },
     "sendmail": "/usr/sbin/sendmail"
   }
 }

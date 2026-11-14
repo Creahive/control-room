@@ -36,7 +36,7 @@ function main() {
     if (process.env.CMD_GUARD_EXTRA) try { extra = fs.readFileSync(process.env.CMD_GUARD_EXTRA, 'utf8').split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#')).map(l => new RegExp(l)); } catch {}
     const why = check((ev.tool_input || {}).command, extra);
     if (!why) return process.exit(0);
-    process.stderr.write(`Blocked by the cmd-hub guard hook: ${why}. If a person really wants this, ask them to run it themselves.\n`);
+    process.stderr.write(`Blocked by the Control Room guard hook: ${why}. If a person really wants this, ask them to run it themselves.\n`);
     process.exit(2);
   });
 }

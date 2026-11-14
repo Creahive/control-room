@@ -1,17 +1,17 @@
 {
-  "name": "cmd-hub",
+  "name": "control-room",
   "version": "0.1.0",
   "description": "A live map and message hub for a team of Claude Code agents: spawn, talk, track tasks and jobs, keep context and load in check.",
   "license": "AGPL-3.0-only",
   "private": true,
   "bin": {
     "cmd": "bin/cmd",
-    "cmd-hub": "bin/cmd-hub",
+    "control-room": "bin/control-room",
     "heavy": "bin/heavy"
   },
   "scripts": {
-    "start": "node bin/cmd-hub",
-    "demo": "node bin/cmd-hub --demo",
+    "start": "node bin/control-room",
+    "demo": "node bin/control-room --demo",
     "test": "node test/run-all.js",
     "build": "node src/lib/build.js"
   },

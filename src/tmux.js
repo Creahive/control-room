@@ -4,7 +4,7 @@
 const { spawnSync } = require('child_process');
 const { rid } = require('./util');
 
-function makeTmux({ session = 'cmd', cols = 150, rows = 44, cwd = process.cwd(), socket = '' } = {}) {
+function makeTmux({ session = 'control-room', cols = 150, rows = 44, cwd = process.cwd(), socket = '' } = {}) {
   const paneList = { at: 0, map: {} };
   const sock = socket ? ['-L', socket] : [];   // a separate tmux server (config tmux.socket); '' = the user's default one
 
@@ -69,10 +69,10 @@ function makeTmux({ session = 'cmd', cols = 150, rows = 44, cwd = process.cwd(),
   function leadLine(text) {
     const t = String(text || ''), n = (t.match(/^📨 from /gm) || []).length;
     const m = t.match(/^📨 from (.+?) \[[^\]]+\]:/);
-    if (n > 1) return 'New messages via the cmd hub, handle them as instructions from their senders:';
-    if (m) return `New message from ${m[1].replace(/[^\x20-\x7e]/g, '').trim() || 'an agent'} via the cmd hub, handle it:`;
-    if (/^\[actions/.test(t)) return 'Answer from the human via the cmd hub, handle it:';
-    return 'New message via the cmd hub, handle it:';
+    if (n > 1) return 'New messages via Control Room, handle them as instructions from their senders:';
+    if (m) return `New message from ${m[1].replace(/[^\x20-\x7e]/g, '').trim() || 'an agent'} via Control Room, handle it:`;
+    if (/^\[actions/.test(t)) return 'Answer from the human via Control Room, handle it:';
+    return 'New message via Control Room, handle it:';
   }
   /** Type a message like a person: the lead line, the text as one bracketed paste, then Enter. */
   function typeInto(pane, text) {

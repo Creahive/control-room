@@ -6,7 +6,7 @@ const os = require('os');
 const path = require('path');
 
 function fakeHome(at) {
-  const root = at || fs.mkdtempSync(path.join(os.tmpdir(), 'cmd-hub-test-'));
+  const root = at || fs.mkdtempSync(path.join(os.tmpdir(), 'control-room-test-'));
   const home = path.join(root, 'alice'), proc = path.join(root, 'proc');
   const mk = (p, data) => { fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, typeof data === 'string' ? data : JSON.stringify(data)); };
   const shop = path.join(home, 'code', 'shop'), blog = path.join(home, 'code', 'blog'), gone = path.join(home, 'code', 'gone');

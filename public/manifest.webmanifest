@@ -1,6 +1,6 @@
 {
-  "name": "CMD",
-  "short_name": "CMD",
+  "name": "Control Room",
+  "short_name": "Control Room",
   "id": "/",
   "start_url": "/",
   "scope": "/",

@@ -1,4 +1,4 @@
-/* CMD front end: live mind map of the agent tree, front-desk chat, per-agent conversation + terminal. */
+/* Control Room front end: live mind map of the agent tree, front-desk chat, per-agent conversation + terminal. */
 'use strict';
 const $ = s => document.querySelector(s);
 /* UI language: every label lives in I18N as [English, Turkish]. English is the default; Turkish is an optional locale
@@ -1659,7 +1659,7 @@ const ago = ts => { if (!ts) return ''; const s = (Date.now() - ts) / 1000; retu
 
 /* The chat hides the hub's delivery text by default. What an agent receives is untouched; this is display only.
    "Raw" in the chat header shows it raw again.
-   Hidden: the "New message ... via the cmd hub, handle it:" lead line, <pasted_content> tags, <system-reminder> blocks,
+   Hidden: the "New message ... via Control Room, handle it:" lead line, <pasted_content> tags, <system-reminder> blocks,
    "📨 from <name> [<id>]:" headers (the sender becomes the bubble name), "(reply with: ...)" footers, "[hub] ..." blocks
    (held FYIs, "since your last turn") and Claude Code's mid-turn note. The message body itself is never changed. */
 let sysRaw = false;
@@ -1844,7 +1844,7 @@ function followMoved(mv) {
   if (nodes[mv.to]) go(); else setTimeout(go, 2500);   // a new bubble shows up with the next tree
   alertBubble(`Moved to the ${mv.name} bubble (it is not about ${fromName})`);
 }
-function alertBubble(msg) { sfxPlay('notify'); addNote('CMD', undefined, msg); const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = msg; document.body.append(el); setTimeout(() => el.classList.add('out'), TOAST_MS - 400); setTimeout(() => el.remove(), TOAST_MS); }
+function alertBubble(msg) { sfxPlay('notify'); addNote('Control Room', undefined, msg); const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = msg; document.body.append(el); setTimeout(() => el.classList.add('out'), TOAST_MS - 400); setTimeout(() => el.remove(), TOAST_MS); }
 
 /* Replies get lost in the chat scrollback, so pop the reply as a card that stays on screen until you act on
    it (minimize, close, or jump into the conversation), instead of a toast that fades on its own. */
@@ -2946,7 +2946,7 @@ function actRow(it, n) {
   </article>`;
 }
 function actTitle(n) {
-  document.title = (n ? '(' + n + ') ' : '') + 'CMD';
+  document.title = (n ? '(' + n + ') ' : '') + 'Control Room';
   const l = document.querySelector('link[rel="icon"]'); if (!l) return;
   if (!n) { l.href = 'favicon.svg'; return; }
   const t = n > 99 ? '99+' : String(n), w = t.length > 2 ? 40 : t.length > 1 ? 34 : 28;

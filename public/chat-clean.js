@@ -2,7 +2,7 @@
    relay headers removed; several relayed messages in one delivery become one bubble each). Shared by the browser
    (loaded before app.js as window.ChatClean) and node (tests). Display only: what an agent receives is untouched. */
 (function (root) {
-  const HUB_LEAD_RE = /(?:^|(?<=\)))[ \t]*(?:New messages? (?:from .+? )?via the cmd hub, handle (?:it|them)[^\n:]*:|Owner answer via the cmd hub, handle it:)[ \t]*\n?/gm;
+  const HUB_LEAD_RE = /(?:^|(?<=\)))[ \t]*(?:New messages? (?:from .+? )?via Control Room, handle (?:it|them)[^\n:]*:|Owner answer via Control Room, handle it:)[ \t]*\n?/gm;
   const AGENT_HEAD_RE = /^(?:📨|✉) from (.+?) \[([^\]\n]+)\]:[ \t]*\n?/;
   function cleanMsg(m) {
     if (/^(?:<[^>]+\/>\s*)?(?:The summarized conversation|This session is being continued from a previous conversation)/.test(String(m.text || '').trim())) return [];   // compact summary
@@ -13,7 +13,7 @@
       .replace(/^.*This is how Claude Code surfaces messages[\s\S]*?(?:\n\s*\n|$)/gm, '')
       .replace(HUB_LEAD_RE, '');
     const out = [];
-    // a message can carry several hub messages ("New messages via the cmd hub"): one bubble each
+    // a message can carry several hub messages ("New messages via Control Room"): one bubble each
     for (let part of t.split(/(?:^|(?<=\)))(?=(?:📨|✉) from .+? \[[^\]\n]+\]:)/m)) {
       // a [hub] note ("Since your last turn", "held while you were idle") ends at its first blank line; the person's own
       // words come after it in the same delivery and must stay. Every [hub] note in the part is removed, not only the first.

@@ -2,7 +2,7 @@
 /* Outgoing mail for invite links. Three modes (config.mail.mode):
  *   console   (default) nothing is sent; the link is printed to the hub log and shown to the admin in the browser
  *   sendmail  pipe the message to a local sendmail binary (config.mail.sendmail)
- *   smtp      a minimal SMTP client: STARTTLS or implicit TLS, AUTH PLAIN; password from $CMD_HUB_SMTP_PASS */
+ *   smtp      a minimal SMTP client: STARTTLS or implicit TLS, AUTH PLAIN; password from $CONTROL_ROOM_SMTP_PASS */
 const net = require('net');
 const tls = require('tls');
 const { spawn } = require('child_process');
@@ -25,14 +25,14 @@ function smtpSend(o, from, to, raw) {
       if (!last) return;
       if (code >= 400) return done(new Error('SMTP: ' + line));
       switch (step) {
-        case 0: write('EHLO cmd-hub'); step = 1; break;
+        case 0: write('EHLO control-room'); step = 1; break;
         case 1:
           if (!o.secure && !sock.encrypted && /STARTTLS/i.test(buf)) { write('STARTTLS'); step = 2; }
           else auth();
           break;
         case 2:
           sock.removeAllListeners('data');
-          sock = tls.connect({ socket: sock, servername: o.host }, () => { write('EHLO cmd-hub'); step = 1; buf = ''; });
+          sock = tls.connect({ socket: sock, servername: o.host }, () => { write('EHLO control-room'); step = 1; buf = ''; });
           sock.encrypted = true; sock.on('data', onData); sock.on('error', done);
           break;
         case 3: write(`MAIL FROM:<${from}>`); step = 4; break;
@@ -60,7 +60,7 @@ module.exports = function makeMailer(cfg, log = console.log) {
   async function send(to, subject, text) {
     const mode = m.mode || 'console';
     if (mode === 'console') { log(`[mail] (console mode, not sent) to ${to}: ${subject}\n${text}`); return { sent: false }; }
-    const from = m.from || 'cmd-hub@localhost', msg = message(from, to, subject, text);
+    const from = m.from || 'control-room@localhost', msg = message(from, to, subject, text);
     if (mode === 'sendmail') {
       await new Promise((ok, fail) => {
         const p = spawn(m.sendmail || '/usr/sbin/sendmail', ['-t', '-i'], { stdio: ['pipe', 'ignore', 'pipe'] });
@@ -71,7 +71,7 @@ module.exports = function makeMailer(cfg, log = console.log) {
     } else if (mode === 'smtp') {
       const s = m.smtp || {};
       if (!s.host) throw new Error('mail.smtp.host is not set');
-      await smtpSend({ ...s, pass: process.env.CMD_HUB_SMTP_PASS || s.pass || '' }, from, to, msg.raw);
+      await smtpSend({ ...s, pass: process.env.CONTROL_ROOM_SMTP_PASS || s.pass || '' }, from, to, msg.raw);
     } else throw new Error('unknown mail.mode ' + mode);
     return { sent: true, id: msg.id };
   }

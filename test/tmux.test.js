@@ -4,7 +4,7 @@ const assert = require('assert');
 const { spawn, spawnSync } = require('child_process');
 const { makeTmux } = require('../src/tmux');
 if (spawnSync('tmux', ['-V']).status !== 0) { console.log('tmux not installed: skipped'); process.exit(0); }
-const sock = 'cmd-hub-test-' + process.pid;
+const sock = 'control-room-test-' + process.pid;
 const T = makeTmux({ session: 't', socket: sock, cwd: process.cwd() });
 const kids = [];
 try {

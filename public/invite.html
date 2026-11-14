@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#07090d">
-<title>CMD · Welcome</title>
+<title>Control Room · Welcome</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -38,7 +38,7 @@ pre{font:14px/1.7 ui-monospace,monospace;color:var(--ink);background:#0b0e15;bor
     <path d="M32 32L12 16M32 32L54 20M32 32L18 52M32 32L50 50" stroke="#3fd0c9" stroke-width="2" opacity=".7"/>
     <circle cx="12" cy="16" r="5" fill="#3fd0c9"/><circle cx="54" cy="20" r="4" fill="#4f9dff"/><circle cx="18" cy="52" r="4" fill="#f2b84b"/><circle cx="50" cy="50" r="5" fill="#ff7ab6"/>
     <circle cx="32" cy="32" r="11" fill="url(#g)"/></svg>
-  <h1>CMD</h1>
+  <h1>Control Room</h1>
   <p id="hi">Checking your invite…</p>
   <div id="step" hidden>
     <p class="sm2"><b>1.</b> Choose your password (at least 12 characters).</p>
@@ -80,7 +80,7 @@ $('f').addEventListener('submit', async ev => {
   b.disabled = true;
   try {
     const {ok, j} = await post('/api/invite/finish', {token, password: $('pw').value, code: $('code').value});
-    if (ok) { done = true; $('step').hidden = true; $('rec').hidden = false; $('codes').textContent = j.recovery.join('\n'); $('hi').textContent = 'All set.'; b.textContent = 'I saved them, open CMD'; }
+    if (ok) { done = true; $('step').hidden = true; $('rec').hidden = false; $('codes').textContent = j.recovery.join('\n'); $('hi').textContent = 'All set.'; b.textContent = 'I saved them, open Control Room'; }
     else { e.textContent = j.error || 'Something went wrong'; $('code').value = ''; }
   } catch { e.textContent = 'Network error'; }
   b.disabled = false;

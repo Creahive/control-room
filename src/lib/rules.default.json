@@ -1,6 +1,6 @@
 {
  "version": 1,
- "about": "Default rule set for a cmd-hub fleet. Edit in the Rules tab or by hand; ids must stay unique.",
+ "about": "Default rule set for a Control Room fleet. Edit in the Rules tab or by hand; ids must stay unique.",
  "claudeMdHead": "# Fleet-wide rules (managed, read by every agent)",
  "rules": [
   {
@@ -12,7 +12,7 @@
    "source": "default rule set",
    "claudeMd": {
     "at": 10,
-    "text": "- Coordinate only through the cmd hub: `cmd tree` shows the fleet, `cmd send <id> \"...\"` reaches another agent, `cmd done \"...\"` closes the task you are on."
+    "text": "- Coordinate only through Control Room: `cmd tree` shows the fleet, `cmd send <id> \"...\"` reaches another agent, `cmd done \"...\"` closes the task you are on."
    }
   },
   {

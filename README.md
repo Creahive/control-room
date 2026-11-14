@@ -1,4 +1,4 @@
-# cmd-hub
+# Control Room
 
 A live map and message hub for a team of [Claude Code](https://docs.claude.com/en/docs/claude-code) agents.
 
@@ -49,9 +49,9 @@ You talk to a **front desk** agent in the browser. It hands real work to **BRAIN
 ## Install
 
 ```sh
-git clone <this repo> cmd-hub && cd cmd-hub
+git clone <this repo> control-room && cd control-room
 npm test            # optional: the test suite, about 2 s
-node bin/cmd-hub    # serves http://127.0.0.1:3070
+node bin/control-room   # serves http://127.0.0.1:3070
 ```
 
 Open `http://127.0.0.1:3070`. On the first run you get the setup wizard:
@@ -63,24 +63,24 @@ Open `http://127.0.0.1:3070`. On the first run you get the setup wizard:
    sessions are adopted as they are. Rename, change roles or untick anything.
 4. **Guard hook (optional)**: the wizard shows the exact `settings.json` diff and asks before writing it. The old
    file is backed up first.
-5. **Apply**: the hub writes the config, links `cmd`, `heavy` and `cmd-hub` into `~/.local/bin`, and registers the
+5. **Apply**: the hub writes the config, links `cmd`, `heavy` and `control-room` into `~/.local/bin`, and registers the
    agents.
 
 With no Claude sessions found, you start with BRAIN and a front desk and add projects later.
 
-Prefer a terminal? Run `node bin/cmd init` for the same steps, then `node bin/cmd-hub`.
+Prefer a terminal? Run `node bin/cmd init` for the same steps, then `node bin/control-room`.
 
 ![Setup: your map and the settings.json diff](docs/screenshots/setup-4.png)
 
 ## Try it without Claude: demo mode
 
 ```sh
-node bin/cmd-hub --demo       # or: npm run demo
+node bin/control-room --demo   # or: npm run demo
 ```
 
 This starts a made-up team with fake agents, fake messages and fake token spend. Nothing is read from your machine,
 and the data lives in a throwaway temp dir. The demo admin password is printed at start; set
-`CMD_HUB_DEMO_PASSWORD` to choose your own.
+`CONTROL_ROOM_DEMO_PASSWORD` to choose your own.
 
 ## The `cmd` command
 
@@ -106,26 +106,26 @@ Run `cmd help` for everything. `heavy -- npm run build` waits for a free heavy-j
 
 ## Configuration
 
-One JSON file, `~/.config/cmd-hub/config.json` (or `$CMD_HUB_CONFIG`). Every key is optional.
-[`cmd-hub.config.example.json`](cmd-hub.config.example.json) lists them all. The main ones:
+One JSON file, `~/.config/control-room/config.json` (or `$CONTROL_ROOM_CONFIG`). Every key is optional.
+[`control-room.config.example.json`](control-room.config.example.json) lists them all. The main ones:
 
 | Key | Default | |
 |---|---|---|
 | `bind`, `port` | `127.0.0.1`, `3070` | where the hub listens |
 | `publicUrl` | `""` | when you serve it behind HTTPS: used for invite links, `Secure` cookies and the Origin check |
-| `dataDir` | `~/.local/share/cmd-hub` | the tree, tasks, jobs, users, sessions, events |
+| `dataDir` | `~/.local/share/control-room` | the tree, tasks, jobs, users, sessions, events |
 | `accounts` | `~/.claude` as `main` | Claude Code config dirs the agents may run on |
 | `roles` | all `main` | which account runs the front desks, BRAIN and the rest (`fleet`, used in order) |
 | `projects` | `[]` | `{ name, cwd, notes }`: one lead per project |
-| `tmux.session`, `tmux.socket` | `cmd`, `""` | tmux session for agent windows; `socket` runs them on a separate tmux server |
+| `tmux.session`, `tmux.socket` | `control-room`, `""` | tmux session for agent windows; `socket` runs them on a separate tmux server |
 | `care` | auto compact at 450K | context care thresholds |
 | `governor` | `maxHeavy` = cores/4 | heavy-job slots, idle sleep under load |
 | `quietHours` | off | a daily window with no agent loops |
 | `managedClaudeMd` | `""` | a CLAUDE.md the hub keeps in sync with the Rules tab |
 | `mail.mode` | `console` | invite links: `console` (shown to the admin), `smtp` or `sendmail` |
 
-Environment overrides: `CMD_HUB_CONFIG`, `CMD_HUB_DATA`, `CMD_HUB_PORT`, `CMD_HUB_BIND`, `CMD_HUB_PUBLIC_URL`,
-`CMD_HUB_TMUX`, `CMD_HUB_CLAUDE_BIN`, `CMD_HUB_DEMO=1`, `CMD_HUB_SMTP_PASS`.
+Environment overrides: `CONTROL_ROOM_CONFIG`, `CONTROL_ROOM_DATA`, `CONTROL_ROOM_PORT`, `CONTROL_ROOM_BIND`, `CONTROL_ROOM_PUBLIC_URL`,
+`CONTROL_ROOM_TMUX`, `CONTROL_ROOM_CLAUDE_BIN`, `CONTROL_ROOM_DEMO=1`, `CONTROL_ROOM_SMTP_PASS`.
 
 ## Security notes
 
@@ -144,7 +144,7 @@ Environment overrides: `CMD_HUB_CONFIG`, `CMD_HUB_DATA`, `CMD_HUB_PORT`, `CMD_HU
 ## How it works
 
 ```text
-bin/cmd-hub        start the hub        src/hub.js           wires the modules together
+bin/control-room   start the hub        src/hub.js           wires the modules together
 bin/cmd            the agent CLI        src/agents.js        tree, launch, status, life cycle
 bin/heavy          heavy-job queue      src/messaging.js     provenance, delivery, tasks
 hooks/guard.js     optional hook        src/claude.js        reads Claude Code session files and transcripts
@@ -167,6 +167,6 @@ socket, so no real session or pane is touched.
 
 ## License
 
-cmd-hub is licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only); see [LICENSE](LICENSE).
+Control Room is licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only); see [LICENSE](LICENSE).
 If you run a modified version as a network service, you must offer its source to its users. Third-party files in `public/vendor/` keep their own licenses
 (ISC and MIT); see [public/vendor/THIRD-PARTY.md](public/vendor/THIRD-PARTY.md).

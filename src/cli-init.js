@@ -52,7 +52,7 @@ async function init(fl = {}) {
   const cfg = CONFIG.load(), io = prompt();
   try {
     if (await hubUp(cfg)) console.log(`Note: a hub answers on ${cfg.bind}:${cfg.port}. Stop it before applying, or use the web wizard at /setup.\n`);
-    console.log(`cmd-hub setup\n  config: ${cfg.file}${cfg.exists ? ' (exists, will be backed up)' : ''}\n  data:   ${cfg.dataDir}\n`);
+    console.log(`Control Room setup\n  config: ${cfg.file}${cfg.exists ? ' (exists, will be backed up)' : ''}\n  data:   ${cfg.dataDir}\n`);
 
     // 1. admin
     const users = readJSON(path.join(cfg.dataDir, 'users.json'), null) || {};
@@ -87,7 +87,7 @@ async function init(fl = {}) {
       console.log(`\nThe optional guard hook would change ${h.file}${h.exists ? ' (backed up first)' : ' (new file)'}:\n` + h.diff.split('\n').filter(l => l[0] !== ' ').join('\n'));
       if (await io.yes('Write this change?', false)) hooks.push(h);
     }
-    const cli = fl['no-cli'] ? null : (await io.yes(`\nLink cmd, heavy and cmd-hub into ${path.join(os.homedir(), '.local', 'bin')}?`, true)) ? path.join(os.homedir(), '.local', 'bin') : null;
+    const cli = fl['no-cli'] ? null : (await io.yes(`\nLink cmd, heavy and control-room into ${path.join(os.homedir(), '.local', 'bin')}?`, true)) ? path.join(os.homedir(), '.local', 'bin') : null;
 
     // 5. apply: config, hooks, CLI, then the agents straight into the data dir
     const res = OB.apply({ cfgFile: cfg.file, prop, hooks, cli, base: cfg.raw || {} });
@@ -102,7 +102,7 @@ async function init(fl = {}) {
     console.log(`\nDone.\n  config: ${res.config}${res.configBackup ? ' (old: ' + res.configBackup + ')' : ''}`);
     for (const h of res.hooks) console.log(`  hook: ${h.file}${h.backup ? ' (old: ' + h.backup + ')' : ''}`);
     for (const c of res.cli) console.log(`  ${c.to}: ${c.state}`);
-    console.log(`  agents: ${Object.keys(tree.nodes).length} on the map\nStart the hub with: cmd-hub  (then open http://${cfg.bind}:${cfg.port})`);
+    console.log(`  agents: ${Object.keys(tree.nodes).length} on the map\nStart the hub with: control-room  (then open http://${cfg.bind}:${cfg.port})`);
   } finally { io.close(); }
 }
 
