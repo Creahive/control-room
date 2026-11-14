@@ -2,7 +2,7 @@
   "name": "cmd-hub",
   "version": "0.1.0",
   "description": "A live map and message hub for a team of Claude Code agents: spawn, talk, track tasks and jobs, keep context and load in check.",
-  "license": "UNLICENSED",
+  "license": "AGPL-3.0-only",
   "private": true,
   "bin": {
     "cmd": "bin/cmd",

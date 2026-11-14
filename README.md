@@ -167,5 +167,6 @@ socket, so no real session or pane is touched.
 
 ## License
 
-Not decided yet. See [LICENSE](LICENSE). Third-party files in `public/vendor/` keep their own licenses
+cmd-hub is licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only); see [LICENSE](LICENSE).
+If you run a modified version as a network service, you must offer its source to its users. Third-party files in `public/vendor/` keep their own licenses
 (ISC and MIT); see [public/vendor/THIRD-PARTY.md](public/vendor/THIRD-PARTY.md).
