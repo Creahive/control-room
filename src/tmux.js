@@ -114,7 +114,30 @@ function makeTmux({ session = 'cmd', cols = 150, rows = 44, cwd = process.cwd(),
     return ls[i].replace(/^❯\s*/, '').trim() !== '' || (ls[i + 1] && !/^─/.test(ls[i + 1]) && ls[i + 1].trim() !== '');
   }
 
-  return { tmux, available, panes, paneAlive, paneCmd, ensure, newWindow, kill, screen, typeInto, sendCommand, runLine, sendKeys, capture, inputBusy, leadLine, cols, rows, session };
+  /** The socket of the tmux server the agents run in (cached once known). */
+  let sockPath = null;
+  function socketPath() {
+    if (sockPath) return sockPath;   // no server yet: null, and nothing of ours can be running in it
+    return (sockPath = tmux('display-message', '-p', '#{socket_path}') || null);
+  }
+  /** Does this process run inside our tmux server? Pane ids (%3) are per server, so a session in another tmux server
+   *  (the user's own, or a second hub) can carry the same pane id. Unknown (no /proc, no TMUX) counts as ours. */
+  const ownCache = new Map();
+  function ownsPid(pid, start) {
+    const k = pid + ':' + (start || '');
+    if (ownCache.has(k)) return ownCache.get(k);
+    let own = true;
+    try {
+      const m = require('fs').readFileSync(`/proc/${pid}/environ`, 'latin1').match(/(?:^|\0)TMUX=([^,\0]*)/);
+      const mine = socketPath();
+      if (m && m[1] && mine) own = m[1] === mine;
+    } catch {}
+    if (ownCache.size > 2000) ownCache.clear();
+    ownCache.set(k, own);
+    return own;
+  }
+
+  return { tmux, available, socketPath, ownsPid, panes, paneAlive, paneCmd, ensure, newWindow, kill, screen, typeInto, sendCommand, runLine, sendKeys, capture, inputBusy, leadLine, cols, rows, session };
 }
 
 module.exports = { makeTmux };

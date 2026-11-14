@@ -11,7 +11,7 @@ const os = require('os');
 const crypto = require('crypto');
 const { readJSON } = require('./util');
 
-function makeClaude({ accounts, home = os.homedir() }) {
+function makeClaude({ accounts, home = os.homedir(), ownsPid = () => true, preTrust = true }) {
   const defaultDir = path.join(home, '.claude');
   const acct = id => accounts.find(a => a.id === id) || null;
   const isDefault = dir => path.resolve(dir) === defaultDir;
@@ -35,7 +35,7 @@ function makeClaude({ accounts, home = os.homedir() }) {
 
   /** Answer Claude's "do you trust this folder?" ahead of time for a cwd the hub chose. */
   function ensureTrust(id, cwd) {
-    const a = acct(id); if (!a || !cwd) return;
+    const a = acct(id); if (!a || !cwd || !preTrust) return;
     const f = stateFile(a.configDir);
     try {
       const d = JSON.parse(fs.readFileSync(f, 'utf8')); d.projects = d.projects || {};
@@ -86,7 +86,7 @@ function makeClaude({ accounts, home = os.homedir() }) {
         if (!s || !s.pid) continue;
         try { process.kill(s.pid, 0); } catch { continue; }
         if (!s.tmux) { const p = paneOfPid(s.pid, s.procStart); if (!p) continue; s.tmux = p; }
-        if (subClaude(s)) continue;
+        if (subClaude(s) || !ownsPid(s.pid, s.procStart)) continue;
         const pane = String(s.tmux).split('.').pop();
         if (!out[pane] || out[pane].startedAt < s.startedAt) out[pane] = { ...s, account: a.id };
       }

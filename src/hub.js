@@ -29,7 +29,7 @@ function createHub(cfg, opts = {}) {
   const hub = { cfg, demo: !!cfg.demo, startedAt: now(), PARK, QH, CDONE, BUILD, RULES };
   hub.URG = { ...URG, urgentError: (from, to, isAbove) => URG.urgentError(from, to, isAbove, { privileged: ['brain', 'front'] }) };
   hub.tmux = makeTmux({ ...cfg.tmux, cwd: cfg.home });
-  hub.claude = makeClaude({ accounts: cfg.accounts, home: cfg.home });
+  hub.claude = makeClaude({ accounts: cfg.accounts, home: cfg.home, ownsPid: (pid, start) => hub.tmux.ownsPid(pid, start), preTrust: cfg.claude.preTrust !== false });
   hub.mailer = makeMailer(cfg);
 
   const log = (...a) => { if (!opts.quiet) console.log(...a); };

@@ -23,6 +23,7 @@ const DEFAULTS = {
   claude: {
     bin: 'claude',
     frontModel: '',              // model for front desks ('' = Claude Code default)
+    preTrust: true,              // mark an agent's cwd as trusted in the account's .claude.json before launch (false: the hub answers the trust prompt instead)
     settingSources: 'user',      // do not load project .claude/settings*.json from agent cwds
     disallowedTools: [],
     tmpDir: '',                  // CLAUDE_CODE_TMPDIR for agents ('' = leave unset)

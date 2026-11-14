@@ -9,6 +9,7 @@
   "claude": {
     "bin": "claude",
     "frontModel": "",
+    "preTrust": true,
     "settingSources": "user",
     "disallowedTools": [],
     "tmpDir": ""
