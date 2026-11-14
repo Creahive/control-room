@@ -1,0 +1,13 @@
+node_modules/
+public/dist/
+*.log
+*.bak-*
+*.tmp
+.env
+.env.*
+config.json
+users.json
+sessions.json
+internal.token
+/data/
+.DS_Store

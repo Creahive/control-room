@@ -1,0 +1,23 @@
+{
+  "name": "cmd-hub",
+  "version": "0.1.0",
+  "description": "A live map and message hub for a team of Claude Code agents: spawn, talk, track tasks and jobs, keep context and load in check.",
+  "license": "UNLICENSED",
+  "private": true,
+  "bin": {
+    "cmd": "bin/cmd",
+    "cmd-hub": "bin/cmd-hub",
+    "heavy": "bin/heavy"
+  },
+  "scripts": {
+    "start": "node bin/cmd-hub",
+    "demo": "node bin/cmd-hub --demo",
+    "test": "node test/run-all.js",
+    "build": "node src/lib/build.js"
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
+  "optionalDependencies": {},
+  "devDependencies": {}
+}

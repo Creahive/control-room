@@ -1,0 +1,36 @@
+{
+  "_comment": "Copy to ~/.config/cmd-hub/config.json (or point CMD_HUB_CONFIG at it). Every key is optional; the setup wizard (/setup or `cmd init`) writes accounts, roles and projects for you.",
+  "dataDir": "~/.local/share/cmd-hub",
+  "bind": "127.0.0.1",
+  "port": 3070,
+  "publicUrl": "",
+  "home": "~",
+  "tmux": { "session": "cmd", "cols": 150, "rows": 44, "socket": "" },
+  "claude": {
+    "bin": "claude",
+    "frontModel": "",
+    "settingSources": "user",
+    "disallowedTools": [],
+    "tmpDir": ""
+  },
+  "accounts": [
+    { "id": "main", "label": "Main", "configDir": "~/.claude" },
+    { "id": "work", "label": "Work", "configDir": "~/.claude-work" }
+  ],
+  "roles": { "front": "main", "brain": "main", "fleet": ["work", "main"] },
+  "projects": [
+    { "name": "webshop", "cwd": "~/code/webshop", "notes": "Node + Postgres; deploys from main" }
+  ],
+  "care": { "auto": true, "compactAt": 450000, "turnCompactAt": 150000 },
+  "governor": { "maxHeavy": 0, "sleepIdleMin": 0, "loadHigh": 1.5, "memHighPct": 90 },
+  "quietHours": { "enabled": false, "tz": "UTC", "start": "01:00", "end": "07:00" },
+  "keepBusy": { "enabled": false, "idleMin": 30 },
+  "managedClaudeMd": "",
+  "prices": {},
+  "mail": {
+    "mode": "console",
+    "from": "cmd-hub@example.com",
+    "smtp": { "host": "smtp.example.com", "port": 587, "secure": false, "user": "cmd-hub@example.com" },
+    "sendmail": "/usr/sbin/sendmail"
+  }
+}

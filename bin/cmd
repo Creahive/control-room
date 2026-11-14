@@ -1,0 +1,117 @@
+#!/usr/bin/env node
+'use strict';
+/* cmd: how agents (and you, from a shell) talk to the hub. Identity comes from CMD_AGENT_ID, which the hub sets when
+ * it launches an agent; without it you are "you". Run `cmd help` for the list. */
+const fs = require('fs');
+const http = require('http');
+const path = require('path');
+const ROOT = path.join(path.dirname(fs.realpathSync(__filename)), '..');
+const CONFIG = require(path.join(ROOT, 'src', 'config'));
+
+const BOOL = new Set(['urgent', 'hold', 'all', 'tree', 'yes', 'json', 'no-hooks', 'no-cli']);
+function parse(argv) {
+  const pos = [], fl = {};
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a.startsWith('--')) { const k = a.slice(2); if (BOOL.has(k)) fl[k] = true; else if (k === 'q') (fl.q = fl.q || []).push(argv[++i]); else fl[k] = argv[++i]; }
+    else pos.push(a);
+  }
+  return { pos, fl };
+}
+const HELP = `cmd: talk to the cmd-hub
+  cmd tree                                   every agent, its id, state and parent
+  cmd spawn --name "<name>" --role <lead|project|worker> [--cwd <dir>] "<brief>"
+  cmd send [--urgent] [--title "<t>"] <id|name> "<message>"   (start an info-only message with "FYI:")
+  cmd done "<result>"                        report your finished task to your parent
+  cmd tasks | cmd task done T-<n> "<result>" | cmd task wait T-<n> --pid <pid> [--note "<what>"]
+  cmd job start "<title>"|J-<n> | cmd job step [J-<n>] "<what>" [--pct 60] [--next "<next>"]
+  cmd job wait [J-<n>] --on owner|agent|capacity|job "<why>" | cmd job done [J-<n>] "<result>" | cmd jobs [--all]
+  cmd job new --to <id> "<title>" [--ask "<words>"] [--budget 10M]
+  cmd ask --title "<question>" [--detail "<context>"] --q "<label> :: <opt> | *<recommended> | <opt>" [--q ...] [--kind delete]
+  cmd actions | cmd reply a<n> "<answer>" | cmd resolve a<n> "<what you did>" | cmd withdraw a<n> "<why>"
+  cmd changelog --title "<t>" --what "<what changed>" --revert "<how to undo>" [--why "<why>"]
+  cmd cap <n> [--since 06:00] [--tree]      exit 1 when your changelog count today reached n
+  cmd stop|start|restart|remove <id> | cmd move <id> <new parent> | cmd rename <id> "<name>"
+  cmd park <id|me> "<why>" [--until 2026-11-04|"2026-11-04 13:30"|12h|3d] [--hold] | cmd unpark <id|me>
+  cmd context | cmd compact ["<what to keep>"] | cmd clear "<handoff note>" | cmd limits
+  cmd init [--yes] [--no-hooks] [--no-cli]   first-time setup in the terminal (the web wizard at /setup does the same)
+  cmd passwd                                 set a new admin password (stop the hub first)
+  cmd demo                                   start the hub with made-up agents in a throwaway data dir`;
+
+function call(cfg, verb, payload) {
+  const tokF = path.join(cfg.dataDir, 'internal.token');
+  let token; try { token = fs.readFileSync(tokF, 'utf8').trim(); } catch { throw new Error(`no hub token at ${tokF}: is the hub running with this data dir? (CMD_HUB_DATA)`); }
+  const data = JSON.stringify({ me: process.env.CMD_AGENT_ID || 'you', ...payload });
+  return new Promise((ok, fail) => {
+    const r = http.request({ host: cfg.bind === '0.0.0.0' ? '127.0.0.1' : cfg.bind, port: cfg.port, path: '/internal/' + verb, method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-cmd-token': token, 'content-length': Buffer.byteLength(data) } }, res => {
+      let b = ''; res.on('data', d => (b += d)); res.on('end', () => {
+        let j; try { j = JSON.parse(b); } catch { j = { error: b }; }
+        res.statusCode >= 400 ? fail(new Error(j.error || res.statusCode)) : ok(j);
+      });
+    });
+    r.on('error', e => fail(new Error(`hub not reachable on ${cfg.bind}:${cfg.port} (${e.code || e.message})`)));
+    r.end(data);
+  });
+}
+
+function parseQuestions(qs) {
+  return [].concat(qs || []).map(q => {
+    const parts = String(q).split('::').map(s => s.trim());
+    const label = parts[0];
+    if (parts[1] === 'text') return { label, type: 'text', placeholder: parts[2] || '' };
+    if (parts[1] === 'many') return { label, type: 'many', options: parts[2].split('|').map(s => s.trim()).filter(Boolean) };
+    return { label, type: 'one', options: (parts[1] || '').split('|').map(s => s.trim()).filter(Boolean) };
+  });
+}
+
+async function main() {
+  const [verb, ...rest] = process.argv.slice(2);
+  const { pos, fl } = parse(rest);
+  if (!verb || verb === 'help' || verb === '-h' || verb === '--help') return console.log(HELP);
+  if (verb === 'init') return require(path.join(ROOT, 'src', 'cli-init'))(fl);
+  if (verb === 'passwd') return require(path.join(ROOT, 'src', 'cli-init')).passwd();
+  if (verb === 'demo') { require('child_process').spawn(process.execPath, [path.join(ROOT, 'bin', 'cmd-hub'), '--demo'], { stdio: 'inherit' }); return; }
+  const cfg = CONFIG.load();
+  const out = (r, f) => console.log(fl.json ? JSON.stringify(r, null, 1) : f(r));
+  const text = pos.join(' ');
+  switch (verb) {
+    case 'tree': return out(await call(cfg, 'tree', {}), r => r.text);
+    case 'spawn': return out(await call(cfg, 'spawn', { name: fl.name, role: fl.role, cwd: fl.cwd ? path.resolve(fl.cwd) : undefined, brief: text, account: fl.account, parent: fl.parent }),
+      r => `${r.reused ? (r.revived ? 'revived' : 'already running') : 'started'}: ${r.id}`);
+    case 'send': return out(await call(cfg, 'send', { to: pos[0], text: pos.slice(1).join(' '), urgent: !!fl.urgent, title: fl.title }),
+      r => `${r.result} -> ${r.to}${r.task ? ` (task ${r.task})` : ''}`);
+    case 'done': return out(await call(cfg, 'done', { text }), () => 'reported');
+    case 'tasks': return out(await call(cfg, 'tasks', {}), r => r.items.map(t => `${t.id} ${t.status} ${t.from} -> ${t.to}: ${t.title}`).join('\n') || 'no open tasks');
+    case 'task': return out(await call(cfg, 'task', { op: pos[0], id: pos[1], text: pos.slice(2).join(' '), pid: fl.pid, note: fl.note }), r => r.id ? `${r.id} ${r.status}` : 'ok');
+    case 'jobs': return out(await call(cfg, 'job', { op: 'list', all: !!fl.all }), r => r.items.map(j => `${j.id} ${j.status}${j.pct != null ? ' ' + j.pct + '%' : ''} ${j.owner}: ${j.title}`).join('\n') || 'no jobs');
+    case 'job': {
+      const op = pos[0], hasId = /^J-\d+$/i.test(pos[1] || '');
+      const id = hasId ? pos[1].toUpperCase() : undefined, words = pos.slice(hasId ? 2 : 1).join(' ');
+      const b = { op, id, text: words, pct: fl.pct, next: fl.next, on: fl.on, to: fl.to, ask: fl.ask, budget: fl.budget };
+      if (op === 'start' && !hasId) b.title = words;
+      if (op === 'new') b.title = words;
+      return out(await call(cfg, 'job', b), r => `${r.id} ${r.status}${r.pct != null ? ' ' + r.pct + '%' : ''}: ${r.title}`);
+    }
+    case 'ask': return out(await call(cfg, 'ask', { title: fl.title, detail: fl.detail, kind: fl.kind, questions: parseQuestions(fl.q) }), r => `card ${r.id}: the answer comes back to you as an [actions] message`);
+    case 'actions': return out(await call(cfg, 'actions', {}), r => r.items.map(i => `${i.id} ${i.status} (${i.from}): ${i.title}`).join('\n') || 'no cards');
+    case 'reply': case 'resolve': case 'withdraw': return out(await call(cfg, verb, { id: pos[0], text: pos.slice(1).join(' ') }), () => 'ok');
+    case 'changelog': return out(await call(cfg, 'changelog', { title: fl.title || text, what: fl.what, why: fl.why, revert: fl.revert, kind: fl.kind }), r => `logged ${r.id}`);
+    case 'cap': {
+      const r = await call(cfg, 'cap', { max: pos[0], since: fl.since, tree: !!fl.tree });
+      console.log(`${r.count}${r.max ? '/' + r.max : ''} since ${fl.since || '00:00'}`);
+      return process.exit(r.over ? 1 : 0);
+    }
+    case 'stop': case 'start': case 'restart': case 'remove': return out(await call(cfg, verb, { id: pos[0] }), () => `${verb}: ${pos[0]}`);
+    case 'move': return out(await call(cfg, 'move', { id: pos[0], parent: pos[1], role: fl.role }), () => 'moved');
+    case 'rename': return out(await call(cfg, 'rename', { id: pos[0], name: pos.slice(1).join(' ') }), r => `renamed: ${r.name}`);
+    case 'park': return out(await call(cfg, 'park', { id: pos[0], why: pos.slice(1).join(' '), until: fl.until, hold: !!fl.hold }), r => `parked until ${new Date(r.until).toISOString().slice(0, 16)}Z`);
+    case 'unpark': return out(await call(cfg, 'unpark', { id: pos[0] }), r => (r.ok ? 'unparked' : 'was not parked'));
+    case 'context': return out(await call(cfg, 'context', {}), r => `context ${r.contextK} tokens; spent today ${Math.round(r.today / 1000)}K, this month ${Math.round(r.month / 1000)}K`);
+    case 'compact': return out(await call(cfg, 'compact', { text, agent: fl.agent }), r => `compact queued (${r.when})`);
+    case 'clear': return out(await call(cfg, 'clear', { text, agent: fl.agent }), r => `clear queued (${r.when})`);
+    case 'limits': return out(await call(cfg, 'limits', {}), r => r.accounts.map(a => `${a.id} (${a.label}): ${a.signedIn ? 'signed in' : 'NOT signed in'}${a.email ? ' as ' + a.email : ''}, ${a.running} running`).join('\n') + '\n' + r.note);
+    default: console.error(`unknown command "${verb}"\n\n${HELP}`); process.exit(2);
+  }
+}
+main().catch(e => { console.error('cmd: ' + e.message); process.exit(1); });

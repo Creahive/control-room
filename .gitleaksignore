@@ -1,0 +1,2 @@
+# false positive: generic-api-key on class names in the minified third-party xterm.js (no secret)
+public/vendor/xterm.js:generic-api-key:1

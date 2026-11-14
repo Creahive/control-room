@@ -1,0 +1,54 @@
+#!/usr/bin/env node
+'use strict';
+/* heavy -- <command...>: run a CPU-heavy job (build, encode, test run) through the hub's queue so agents do not start
+ * many at once. It waits for a free slot (the governor's number in <dataDir>/governor-live.json; without a hub,
+ * max(1, cores/4)), runs the command under nice, and passes its exit code through. The queue is one small file per job
+ * in <dataDir>/heavy/, so the map's server widget shows what runs and what waits. */
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const { spawn } = require('child_process');
+const ROOT = path.join(path.dirname(fs.realpathSync(__filename)), '..');
+const CONFIG = require(path.join(ROOT, 'src', 'config'));
+
+const argv = process.argv.slice(2), dd = argv.indexOf('--');
+const cmd = dd >= 0 ? argv.slice(dd + 1) : argv;
+if (!cmd.length) { console.error('usage: heavy -- <command> [args...]'); process.exit(2); }
+
+const cfg = CONFIG.load(), dir = path.join(cfg.dataDir, 'heavy');
+fs.mkdirSync(dir, { recursive: true });
+const me = path.join(dir, process.pid + '.json');
+const rec = { pid: process.pid, cmd: cmd.join(' '), at: Date.now(), state: 'waiting', agent: process.env.CMD_AGENT_ID || null };
+const write = () => fs.writeFileSync(me, JSON.stringify(rec));
+const cleanup = () => { try { fs.unlinkSync(me); } catch {} };   // our own queue file only
+const alive = pid => { try { process.kill(pid, 0); return true; } catch (e) { return e.code === 'EPERM'; } };
+function slots() {
+  try { const g = JSON.parse(fs.readFileSync(path.join(cfg.dataDir, 'governor-live.json'), 'utf8')); if (Date.now() - g.at < 60_000 && g.slots > 0) return g.slots; } catch {}
+  const mh = (cfg.governor || {}).maxHeavy; return mh > 0 ? mh : Math.max(1, Math.floor(os.cpus().length / 4));
+}
+function queue() {
+  const out = [];
+  for (const f of fs.readdirSync(dir).filter(f => /^\d+\.json$/.test(f))) {
+    try { const j = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); if (alive(j.pid)) out.push(j); } catch {}
+  }
+  return out;
+}
+
+write();
+process.on('exit', cleanup);
+for (const s of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(s, () => { cleanup(); process.exit(130); });
+
+let told = false;
+(function tryStart() {
+  const q = queue(), running = q.filter(j => j.state === 'running').length;
+  const ahead = q.filter(j => j.state === 'waiting' && (j.at < rec.at || (j.at === rec.at && j.pid < rec.pid))).length;
+  if (running < slots() && ahead === 0) {
+    rec.state = 'running'; rec.startedAt = Date.now(); write();
+    const child = spawn('nice', ['-n', '10', ...cmd], { stdio: 'inherit' });
+    child.on('error', e => { console.error('heavy: ' + e.message); cleanup(); process.exit(127); });
+    child.on('exit', (code, sig) => { cleanup(); process.exit(code == null ? 128 + (os.constants.signals[sig] || 1) : code); });
+    return;
+  }
+  if (!told) { console.error(`heavy: waiting for a slot (${running} running, ${ahead} ahead)`); told = true; }
+  setTimeout(tryStart, 3000);
+})();

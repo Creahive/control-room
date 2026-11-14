@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#07090d">
+<title>CMD</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CMD">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vendor/xterm.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="tasks.css">
+<link rel="stylesheet" href="agents.css">
+<link rel="stylesheet" href="jobs.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><img src="favicon.svg" alt=""><b>CMD</b><span class="sub">agent mind map</span><span class="pill demo" id="demoBadge" hidden title="Demo mode: the agents on this map are simulated">demo</span></div>
+  <nav class="views" aria-label="View"><button data-view="map" class="on">Map</button><button data-view="cc">Command center</button><button data-view="jobs" class="adm-only">Jobs<span class="jbadge" hidden></span></button><button data-view="actions" class="adm-only">Actions<span class="abadge" hidden></span></button><button data-view="log" class="adm-only">Changelog</button><button data-view="rules" class="adm-only">Rules</button><button data-view="agents" class="adm-only">Agents</button><button data-view="queue" class="adm-only">Queue<span class="qbadge" hidden></span></button></nav>
+  <div class="pills">
+    <span class="hchip quietchip" id="quietChip" hidden></span>
+    <button class="hchip" id="limChip" hidden aria-expanded="false" aria-controls="limitsBox" title="Plan limits"></button>
+    <button class="hchip" id="srvChip" hidden aria-expanded="false" aria-controls="srv" title="Server"></button>
+    <button class="ghost icon kpalbtn" id="kpalBtn" title="Search (Ctrl+K): type a project or agent to go to it on the map" aria-label="Search"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button>
+    <button class="ghost icon nbell" id="notifBtn" title="Notifications" aria-label="Notifications" aria-expanded="false"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg><b hidden></b></button>
+    <span class="pill live" id="livePill"><i></i>connecting</span>
+    <button class="ghost icon" id="soundBtn" title="Sounds" aria-label="Sounds" aria-pressed="true"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="sw1" d="M15.5 8.5a5 5 0 0 1 0 7"/><path class="sw2" d="M18.5 5.5a9 9 0 0 1 0 13"/><path class="sx" d="M16 9l6 6M22 9l-6 6"/></svg></button>
+    <button class="ghost icon" id="openSettings" title="Settings: accounts, usage, agents" aria-label="Settings"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    <button class="ghost" id="logout" title="Sign out">Sign out</button>
+  </div>
+</header>
+
+<main class="layout">
+  <!-- Concierge chat -->
+  <section class="chat" id="chatPane" aria-label="Concierge">
+    <div class="chat-grip" id="chatGrip" title="Resize (double click: default)" aria-hidden="true"></div>
+    <div class="chat-head">
+      <div class="who"><span class="orb front"></span><div><b id="frontName">Your concierge</b><small id="frontState">…</small></div></div>
+      <div class="chat-tools"><button class="ghost sm innerbtn" title="Show messages between agents in full (when off: one line)" aria-pressed="false">Internal traffic</button><button class="ghost sm sysraw" id="sysRawBtn" title="Show the hub/system text (the raw form agents see)" aria-pressed="false">Raw</button><button class="ghost sm" id="frontTerm" title="Open the concierge's terminal">Terminal</button>
+      <button class="ghost sm icon" id="chatFold" title="Fold" aria-label="Fold" aria-pressed="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 14l5-5 5 5"/></svg></button>
+      <button class="ghost sm icon" id="chatMin" title="Minimise" aria-label="Minimise chat"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 12h12"/></svg></button></div>
+    </div>
+    <div class="branches" id="branches" aria-label="Conversation branches"></div>
+    <div class="bgraph" id="bgraph" hidden>
+      <div class="bg-rows" id="bgRows" role="listbox" aria-label="Branches"></div>
+    </div>
+    <div class="ctabs" role="tablist"><button role="tab" data-ctab="chat" class="on">Chat</button><button role="tab" data-ctab="live"><span class="ldot"></span>Live<small id="liveCount"></small></button></div>
+    <div class="cpane-live" id="livePane" hidden>
+      <div class="livesub" id="liveSub"><span>What happens across the agents, live</span><span class="lfs"><button data-lf="all" class="on">All</button><button data-lf="agents">Agents</button><button data-lf="sys">System</button></span></div>
+      <div class="livelist" id="liveList"><p class="muted small lempty">Events show up here as they happen: an agent started or finished, work handed between agents, account switches, changelog entries.</p></div>
+    </div>
+    <div class="notice" id="frontNotice" hidden></div>
+    <div class="msgs" id="frontMsgs"></div>
+    <div class="attrow" id="frontAtt" hidden></div>
+    <form class="composer" id="frontForm">
+      <button type="button" class="attbtn" id="frontAttBtn" title="Attach files or images (you can also paste or drop them)" aria-label="Attach files"><svg viewBox="0 0 24 24"><path d="M20.5 11.5l-8.2 8.2a5 5 0 01-7.1-7.1l8.5-8.5a3.3 3.3 0 014.7 4.7l-8.5 8.5a1.7 1.7 0 01-2.4-2.4l7.8-7.8"/></svg></button>
+      <input type="file" id="frontFile" multiple hidden>
+      <textarea id="frontInput" rows="1" placeholder="Ask, or give a task…" ></textarea>
+      <button class="send" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2.5-6.5z"/></svg></button>
+    </form>
+  </section>
+
+  <button class="chatfab" id="chatFab" title="Chat with your concierge" aria-label="Open concierge chat"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 5h16v11H10l-5 4v-4H4z"/></svg><i></i></button>
+
+  <!-- Mind map -->
+  <section class="map" id="mapPane" aria-label="Agent map">
+    <canvas id="bgfx" aria-hidden="true"></canvas>
+    <svg id="map"></svg>
+    <div class="topleft" id="topLeft">
+      <div class="tokbar" id="tokBar" role="group" aria-label="Token period">
+        <span class="tk-l"><i></i>Tokens</span><button data-p="today">Today</button><button data-p="week">This week</button><button data-p="month">This month</button><button data-p="off" title="Hide token rings">Off</button>
+        <b id="tokSum"></b>
+      </div>
+      <div class="limits hpop" id="limitsBox" hidden></div>
+      <svg class="skillhive" id="skillHive" aria-label="Global skills" hidden></svg>
+    </div>
+    <div class="topicheads" id="topicHeads" hidden aria-label="Open topics"></div>
+    <button class="tdock" id="topicDock" hidden aria-expanded="false" aria-controls="topicHeads" title="Open topics"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 5h16v10H9l-5 4z"/></svg><b></b></button>
+    <div class="legend">
+      <span><i class="st working"></i>working</span><span><i class="st idle"></i>idle</span><span><i class="st starting"></i>starting</span>
+      <span><i class="st login"></i>needs sign-in</span><span><i class="st offline"></i>offline</span>
+      <span class="lsep"></span><span><i class="tk-q"></i><i class="tk-w"></i><i class="tk-d"></i>tasks: queued · working · done</span><span class="lsep"></span><span><i class="st tok"></i>token ring</span>
+    </div>
+    <button id="srv" class="srv hpop" hidden aria-label="Server status" aria-expanded="false"></button>
+    <div class="zoom"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">−</button><button id="zcomb" aria-label="Honeycomb layout" title="Free layout"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M8 3.5h4l2 3.5-2 3.5H8L6 7zM14 9.5h4l2 3.5-2 3.5h-4l-2-3.5zM8 15.5h4l2 3.5-2 3.5H8l-2-3.5z"/></svg></button><button id="zfit" aria-label="Fit to screen"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button></div>
+    <div class="feed" id="feed" aria-live="polite"></div>
+  </section>
+
+  <section class="actions" id="logView" aria-label="What changed" hidden>
+    <div class="act-wrap">
+      <div class="act-top"><h2>Changelog</h2><span class="act-count" id="logCount"></span></div>
+      <p class="act-lede">Changes agents made to the system and to projects. Each entry says how to undo it.</p>
+      <div id="logList"></div>
+    </div>
+  </section>
+
+  <section class="actions" id="rulesView" aria-label="Rules" hidden>
+    <div class="act-wrap">
+      <div class="act-top"><h2>Rules</h2><span class="act-count" id="rulesCount"></span></div>
+      <p class="act-lede">Every rule the agents follow. Untick a rule to turn it off everywhere: it leaves the managed CLAUDE.md and the prompts, and if it is a hub behaviour it stops at once. Text rules apply from the agent's next start. Every change is logged in the Changelog and Brain is told.</p>
+      <div id="rulesList"></div>
+    </div>
+  </section>
+
+
+  <section class="actions" id="jobsView" aria-label="Jobs" hidden>
+    <div class="act-wrap ag-wrap">
+      <div class="act-top"><h2>Jobs</h2><span class="act-count" id="jbCount"></span>
+        <span class="jb-fs" id="jbFs" role="group" aria-label="Filter"><button data-jf="open" class="on">Open</button><button data-jf="done">Done</button><button data-jf="all">All</button></span></div>
+      <p class="act-lede">Every job is a card: who has it, its state, the last step, the next step, tokens spent and its budget. The agent updates the card at every step, no need to ask. <b>Stuck?</b> = no step written for 30+ minutes. <b>Unassigned</b> = spend today not tied to any job.</p>
+      <div class="q-sum" id="jbSum"></div>
+      <div id="jbList"><div class="act-empty">Loading…</div></div>
+    </div>
+  </section>
+  <section class="actions" id="queueView" aria-label="Queue" hidden>
+    <div class="act-wrap ag-wrap">
+      <div class="act-top"><h2>Queue</h2><span class="act-count" id="qCount"></span></div>
+      <p class="act-lede">Everything waiting right now: messages that have not reached their agent yet (the hub queue and the agent's own inbox), agents waiting to wake, upcoming tasks and how long running turns have taken. <b>Stuck?</b> = the turn is running but has written nothing for 20+ minutes.</p>
+      <div class="q-sum" id="qSum"></div>
+      <div id="qList"><div class="act-empty">Loading…</div></div>
+    </div>
+  </section>
+  <section class="actions" id="agentsView" aria-label="Agents" hidden>
+    <div class="act-wrap ag-wrap">
+      <div class="act-top"><h2>Agents</h2><span class="act-count" id="agCount"></span></div>
+      <p class="act-lede">Every agent, what it is working on, its last report and what it is waiting on. <b>Asleep</b> does not mean stuck: the hub put it to sleep to save resources, and it wakes in the same session on its next message.</p>
+      <div class="ag-sticky"><div class="ag-chips" id="agChips" role="group" aria-label="Filter by status"></div>
+      <div class="ag-head" aria-hidden="true"><span>Agent</span><span>Status</span><span>Title</span><span>Time</span><span>Tokens</span><span>Output</span><span>Waiting on</span><span></span></div></div>
+      <div id="agList"><div class="act-empty">Loading…</div></div>
+    </div>
+  </section>
+
+  <section class="actions" id="actionsView" aria-label="Decisions waiting for you" hidden>
+    <div class="act-wrap">
+      <div class="act-top"><h2>Actions</h2><span class="act-count" id="actCount"></span>
+        <select id="actSort" aria-label="Sort"><option value="old">Oldest first</option><option value="new">Newest first</option><option value="from">By asking agent</option><option value="del">Deletes first</option></select>
+        <button type="button" class="abulk" id="actBulk" hidden></button></div>
+      <p class="act-lede">Click a row or press Enter to open the card. Your answer goes to the agent that asked. <span class="akeys"><kbd>j</kbd><kbd>k</kbd> move · <kbd>Enter</kbd> open · <kbd>a</kbd> apply the recommended answer</span></p>
+      <div id="actList"></div>
+      <details class="act-done" id="actLaterBox" hidden><summary>Snoozed <span id="actLaterN"></span></summary><div id="actLater"></div></details>
+      <details class="act-done" id="actDoneBox" hidden><summary>Sent <span id="actDoneN"></span></summary><div id="actDone"></div></details>
+    </div>
+  </section>
+  <!-- Node drawer -->
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="d-head">
+      <div class="who"><span class="orb" id="dOrb"></span><div><b id="dName"></b><small id="dMeta"></small></div></div>
+      <div class="chat-tools"><button class="ghost sm innerbtn" title="Show messages between agents in full (when off: one line)" aria-pressed="false">Internal traffic</button><button class="ghost sm sysraw" id="dSysRaw" title="Show the hub/system text (the raw form agents see)" aria-pressed="false">Raw</button><button class="ghost sm icon" id="dClose" aria-label="Close">✕</button></div>
+    </div>
+    <div class="d-path" id="dPath"></div>
+    <div class="d-last" id="dLast"></div>
+    <div class="d-actions">
+      <button class="ghost sm" id="dSpawn">+ Child agent</button>
+      <button class="ghost sm" id="dStart">Start</button>
+      <button class="ghost sm" id="dCompact" title="Summarise this agent's conversation when its turn ends (saves tokens on every later message)">Compact</button>
+      <button class="ghost sm" id="dClear" title="Ask the agent to write a handoff note and start fresh">Clear</button>
+      <button class="ghost sm danger" id="dStop">Stop</button>
+      <button class="ghost sm danger" id="dRemove" hidden>Remove</button>
+    </div>
+    <div class="tabs" role="tablist"><button role="tab" data-tab="talk" class="on">Conversation</button><button role="tab" data-tab="term">Terminal</button><button role="tab" data-tab="skills" hidden>Skills</button></div>
+    <div class="tabpane" id="tabTalk">
+      <div class="msgs" id="dMsgs"></div>
+      <form class="composer" id="dForm">
+        <textarea id="dInput" rows="1" placeholder="Message this agent directly…"></textarea>
+        <button class="send" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2.5-6.5z"/></svg></button>
+      </form>
+    </div>
+    <div class="tabpane" id="tabSkills" hidden></div>
+    <div class="tabpane" id="tabTerm" hidden>
+      <div class="term-hint" id="termHint"></div>
+      <div class="term" id="term"></div>
+    </div>
+  </aside>
+</main>
+
+<!-- Settings -->
+<section class="settings" id="settings" hidden aria-label="Settings">
+  <div class="s-wrap">
+    <div class="s-head"><h1>Settings</h1><button class="ghost sm icon" id="sClose" aria-label="Close settings">✕</button></div>
+
+    <h2>Language</h2>
+    <div class="card2"><div class="kv"><span class="muted">Interface language. The page reloads once.</span><select id="sLang" aria-label="Language"><option value="en">English</option><option value="tr">Türkçe</option></select></div></div>
+
+    <h2>People</h2>
+    <p class="muted">Everyone signs in at this address with their own password (team members also with an authenticator code) and gets their own concierge. Their desk only forwards requests for the projects you allow; what they can see and do here is enforced by the server.</p>
+    <div class="people" id="sPeople"><div class="muted">Loading…</div></div>
+    <form class="card2 addperson" id="addPerson">
+      <label>Add a person<input name="name" placeholder="Name, e.g. Alex" maxlength="40" required></label>
+      <label>Email (they get an invite link, set their own password and two-step sign-in)<input name="email" type="email" placeholder="name@example.com" maxlength="120"></label>
+      <label class="perm"><input type="checkbox" name="send"><span>Send the invite now (leave off to pick their projects first)</span></label>
+      <button class="primary sm">Add person</button>
+    </form>
+    <div class="card2 newpw" id="newPw" hidden></div>
+
+    <h2>Claude accounts</h2>
+    <p class="muted">Accounts the hub can run agents on. Read only here; sign in from a terminal.</p>
+    <div class="accts" id="sAccounts"><div class="muted">Loading…</div></div>
+
+
+
+    <h2>Projects</h2>
+    <p class="muted">Where each project's lead works. A lead named after a project always starts in its folder, and Brain gets this list. Folder changes apply when the lead restarts.</p>
+    <div class="card2">
+      <div class="projbar"><span class="grow"></span><button class="ghost sm" id="projAdd">+ Add project</button></div>
+      <div class="scrollx"><table class="projects"><thead><tr><th>Project</th><th>Folder</th><th>Notes for the lead</th><th>Lead</th><th></th></tr></thead><tbody id="sProjects"></tbody></table></div>
+      <div class="formmsg" id="projMsg" aria-live="polite"></div>
+    </div>
+
+    <h2>Context care</h2>
+    <div class="card2" id="sFleet"></div>
+
+    <h2>Agents</h2>
+    <div class="card2 scrollx" id="sAgents"></div>
+
+    <h2>Security</h2>
+    <div class="card2">
+      <form id="pwForm" class="pwform">
+        <label>Current password<input name="current" type="password" autocomplete="current-password" required></label>
+        <label>New password<input name="next" type="password" autocomplete="new-password" minlength="10" required></label>
+        <label>New password again<input name="again" type="password" autocomplete="new-password" minlength="10" required></label>
+        <button class="primary sm">Change password</button>
+        <div class="formmsg" id="pwMsg" aria-live="polite"></div>
+      </form>
+      <div class="kv"><span id="sHub"></span><button class="ghost sm" id="sLogoutOthers">Sign out other browsers</button></div>
+    </div>
+  </div>
+</section>
+
+<nav class="mobnav"><button data-view="map" class="on" data-s="Map">Map</button><button data-view="cc" data-s="Chat">Command center</button><button data-view="actions" class="adm-only" data-s="Decisions">Actions<span class="abadge" hidden></span></button><button data-view="log" class="adm-only" data-s="Log">Changelog</button><button data-view="agents" class="adm-only" data-s="Agents">Agents</button><button data-view="queue" class="adm-only" data-s="Queue">Queue<span class="qbadge" hidden></span></button><button class="mpal" id="mPal" aria-label="Command palette" title="Command palette (search, go, decide)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button></nav>
+
+<dialog id="spawnDlg">
+  <form method="dialog" id="spawnForm">
+    <h3>New agent under <span id="spParent"></span></h3>
+    <label>Name<input name="name" required placeholder="docs site, mobile app…"></label>
+    <div class="row">
+      <label>Role<select name="role"><option value="lead">lead (a project)</option><option value="project" selected>project</option><option value="worker">worker</option></select></label>
+      <label>Working folder<input name="cwd" placeholder="/srv/my-app"></label>
+    </div>
+    <label>Brief<textarea name="brief" rows="4" placeholder="What should it do?"></textarea></label>
+    <div class="row end"><button value="cancel" class="ghost">Cancel</button><button value="ok" class="primary">Create</button></div>
+  </form>
+</dialog>
+
+
+<script src="vendor/d3.min.js"></script>
+<script src="vendor/xterm.js"></script>
+<script src="chat-clean.js"></script>
+<script src="app.js"></script>
+<script src="tasks-ui.js"></script>
+<script src="agents-ui.js"></script>
+<script src="jobs-ui.js"></script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});</script>
+</body>
+</html>

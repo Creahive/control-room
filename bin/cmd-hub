@@ -1,0 +1,49 @@
+#!/usr/bin/env node
+'use strict';
+/* Start the hub.
+ *   cmd-hub            serve with the config at $CMD_HUB_CONFIG or ~/.config/cmd-hub/config.json (none: the setup wizard)
+ *   cmd-hub --demo     a made-up fleet in a throwaway data dir (for trying the UI and for screenshots)
+ *   cmd-hub --port N   override the port */
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const crypto = require('crypto');
+const fsReal = fs.realpathSync(__filename);
+const ROOT = path.join(path.dirname(fsReal), '..');
+const CONFIG = require(path.join(ROOT, 'src', 'config'));
+const { createHub } = require(path.join(ROOT, 'src', 'hub'));
+const { makeServer } = require(path.join(ROOT, 'src', 'http', 'server'));
+
+const args = process.argv.slice(2);
+if (args.includes('-h') || args.includes('--help')) {
+  console.log('usage: cmd-hub [--demo] [--port N]\n  config: $CMD_HUB_CONFIG or ~/.config/cmd-hub/config.json (see cmd-hub.config.example.json)');
+  process.exit(0);
+}
+const env = { ...process.env };
+if (args.includes('--demo')) {
+  env.CMD_HUB_DEMO = '1';
+  if (!env.CMD_HUB_DATA) env.CMD_HUB_DATA = fs.mkdtempSync(path.join(os.tmpdir(), 'cmd-hub-demo-'));
+  if (!env.CMD_HUB_CONFIG) env.CMD_HUB_CONFIG = path.join(env.CMD_HUB_DATA, 'config.json');   // never the real config
+}
+const pi = args.indexOf('--port'); if (pi >= 0) env.CMD_HUB_PORT = args[pi + 1];
+
+const cfg = CONFIG.load(env);
+const hub = createHub(cfg);
+if (hub.demo && hub.setupNeeded()) {
+  const pw = env.CMD_HUB_DEMO_PASSWORD || crypto.randomBytes(9).toString('base64url');
+  hub.createAdmin('Demo admin', pw, { demo: true });
+  console.log(`demo admin password: ${pw}`);
+}
+hub.ensureCore('owner');
+hub.syncDesks();
+const server = makeServer(hub);
+server.listen(cfg.port, cfg.bind, () => {
+  const url = `http://${cfg.bind === '0.0.0.0' ? 'localhost' : cfg.bind}:${cfg.port}`;
+  console.log(`cmd-hub ${hub.demo ? '(demo) ' : ''}on ${url}${cfg.publicUrl ? ' (public: ' + cfg.publicUrl + ')' : ''}`);
+  console.log(`data: ${cfg.dataDir}${cfg.exists ? '' : '  (no config file yet: ' + cfg.file + ')'}`);
+  if (hub.setupNeeded()) console.log(`first run: open ${url}/setup`);
+  if (!hub.demo && !hub.tmux.available()) console.log('warning: tmux not found; agents cannot be started until it is installed');
+  hub.startLoops();
+});
+const bye = () => { hub.stopLoops(); server.close(); process.exit(0); };
+process.on('SIGINT', bye); process.on('SIGTERM', bye);

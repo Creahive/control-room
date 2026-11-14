@@ -1,0 +1,139 @@
+{
+ "version": 1,
+ "about": "Default rule set for a cmd-hub fleet. Edit in the Rules tab or by hand; ids must stay unique.",
+ "claudeMdHead": "# Fleet-wide rules (managed, read by every agent)",
+ "rules": [
+  {
+   "on": true,
+   "id": "coordinate",
+   "group": "workflow",
+   "title": "Coordinate through the hub",
+   "desc": "Agents talk to each other only through cmd, so every message is on the map.",
+   "source": "default rule set",
+   "claudeMd": {
+    "at": 10,
+    "text": "- Coordinate only through the cmd hub: `cmd tree` shows the fleet, `cmd send <id> \"...\"` reaches another agent, `cmd done \"...\"` closes the task you are on."
+   }
+  },
+  {
+   "on": true,
+   "id": "report-results",
+   "group": "workflow",
+   "title": "Report results, not \"done\"",
+   "desc": "A finished task says what changed, where, and how it was checked.",
+   "source": "default rule set",
+   "claudeMd": {
+    "at": 20,
+    "text": "- Report results, not \"done\": say what changed, where (file, commit, URL) and how you checked it."
+   },
+   "prompt": [
+    {
+     "at": 10,
+     "join": "\n\n",
+     "text": "When you finish, report the result: what changed, where (file, commit, URL) and how you verified it. \"Done\" alone is not a report."
+    }
+   ]
+  },
+  {
+   "on": true,
+   "id": "ask-human",
+   "group": "workflow",
+   "title": "Ask a person for decisions",
+   "desc": "Decisions that belong to a person go to them as a card, not a guess.",
+   "source": "default rule set",
+   "claudeMd": {
+    "at": 30,
+    "text": "- Decisions that belong to a person (spending, deleting, publishing, anything hard to undo) go to them with `cmd ask`; do not guess and do not wait silently."
+   }
+  },
+  {
+   "on": true,
+   "id": "no-delete",
+   "group": "safety",
+   "title": "Nothing is deleted without asking",
+   "desc": "Outside its own scratch directory an agent asks before deleting and archives instead.",
+   "source": "default rule set",
+   "confirm": true,
+   "risk": "Agents may delete files, data or history without asking; there may be no way back.",
+   "claudeMd": {
+    "at": 40,
+    "text": "- Never delete anything outside your own scratch directory without asking first (`cmd ask`); move it to an archive instead of removing it."
+   },
+   "prompt": [
+    {
+     "at": 20,
+     "join": "\n\n",
+     "text": "Never delete files, data, mail or git history outside your scratch directory without a person's OK; archive instead."
+    }
+   ]
+  },
+  {
+   "on": true,
+   "id": "backup-verify",
+   "group": "safety",
+   "title": "Back up, then verify",
+   "desc": "Every change is backed up first and checked afterwards; a broken change is rolled back.",
+   "source": "default rule set",
+   "confirm": true,
+   "risk": "Changes are made without a backup or a check; a broken change may not be recoverable.",
+   "prompt": [
+    {
+     "at": 30,
+     "join": "\n",
+     "text": "Before every change: back up what you change, verify it works afterwards, and roll back at once if it broke."
+    }
+   ]
+  },
+  {
+   "on": true,
+   "id": "git-hygiene",
+   "group": "safety",
+   "title": "Git hygiene",
+   "desc": "Never commit secrets; small commits with clear messages; no rewriting shared history.",
+   "source": "default rule set",
+   "confirm": true,
+   "risk": "Secrets may end up in a repository, or shared history may be rewritten.",
+   "claudeMd": {
+    "at": 50,
+    "text": "- Git hygiene: never commit secrets (keys, tokens, passwords, .env files); keep commits small with a clear message; never rewrite shared history."
+   }
+  },
+  {
+   "on": true,
+   "id": "heavy-jobs",
+   "group": "hub",
+   "title": "Heavy jobs through the queue",
+   "desc": "Builds, test suites and big scans run through heavy so the machine stays responsive.",
+   "source": "default rule set",
+   "claudeMd": {
+    "at": 60,
+    "text": "- Run heavy jobs (builds, full test suites, large scans) through `heavy -- <command>` so the hub can queue them and keep the machine responsive."
+   }
+  },
+  {
+   "on": true,
+   "id": "context-care",
+   "group": "timing",
+   "title": "Context care",
+   "desc": "Keep the context small and compact once a turn ends above the threshold.",
+   "source": "default rule set",
+   "prompt": [
+    {
+     "at": 40,
+     "join": "\n\n",
+     "text": "Context care: summarise long tool output instead of pasting it, and run /compact once a turn ends above {{compactK}}K."
+    }
+   ]
+  },
+  {
+   "on": true,
+   "id": "quiet-hours",
+   "group": "timing",
+   "title": "Quiet hours",
+   "desc": "When quiet hours are configured, the hub parks background loops in that window.",
+   "source": "default rule set",
+   "code": true,
+   "codeWhat": "quiet-hours window (config.quietHours)"
+  }
+ ]
+}

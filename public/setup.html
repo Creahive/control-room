@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cmd-hub setup</title>
+<link rel="icon" href="/favicon.svg">
+<style>
+  :root { --bg: #0d1117; --card: #161b22; --line: #30363d; --fg: #e6edf3; --dim: #8b949e; --acc: #58a6ff; --ok: #3fb950; --bad: #f85149; --warn: #d29922; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  main { max-width: 860px; margin: 40px auto; padding: 0 20px; }
+  h1 { font-size: 22px; margin: 0 0 4px; } h2 { font-size: 17px; margin: 0 0 12px; }
+  .sub { color: var(--dim); margin-bottom: 24px; }
+  .steps { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+  .steps span { padding: 4px 10px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); color: var(--dim); font-size: 13px; }
+  .steps span.on { color: var(--fg); border-color: var(--acc); } .steps span.done { color: var(--ok); }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  label { display: block; margin: 10px 0 4px; color: var(--dim); font-size: 13px; }
+  input[type=text], input[type=password], select { width: 100%; padding: 9px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: inherit; }
+  button { padding: 9px 16px; border-radius: 6px; border: 1px solid var(--acc); background: var(--acc); color: #0d1117; font: inherit; font-weight: 600; cursor: pointer; margin-top: 14px; }
+  button.ghost { background: transparent; color: var(--acc); }
+  button:disabled { opacity: .5; cursor: default; }
+  .err { color: var(--bad); margin-top: 10px; min-height: 1em; }
+  .row { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .row:last-child { border-bottom: 0; }
+  .row .grow { flex: 1; min-width: 0; } .row small { color: var(--dim); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pill { font-size: 12px; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--line); color: var(--dim); white-space: nowrap; }
+  .pill.ok { color: var(--ok); border-color: var(--ok); } .pill.bad { color: var(--bad); border-color: var(--bad); } .pill.warn { color: var(--warn); border-color: var(--warn); }
+  pre { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px; overflow: auto; max-height: 320px; font-size: 12.5px; }
+  pre .add { color: var(--ok); } pre .del { color: var(--bad); }
+  code { background: var(--bg); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .qr { background: #fff; display: inline-block; padding: 6px; border-radius: 6px; margin: 8px 0; } .qr svg { width: 180px; height: 180px; display: block; }
+  .tree .row input[type=text] { padding: 5px 8px; }
+  .tree .row select { width: 120px; padding: 5px 8px; }
+  .indent { padding-left: 26px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Welcome to cmd-hub</h1>
+  <div class="sub">A few steps: your admin login, then the hub looks for Claude Code on this machine and proposes an agent map.</div>
+  <div class="steps" id="steps"><span>1 Admin</span><span>2 Two-step sign-in</span><span>3 Connect your agent</span><span>4 Your map</span><span>5 Done</span></div>
+
+  <section id="s1" class="hidden">
+    <h2>Create the admin login</h2>
+    <label>Your name</label><input type="text" id="name" value="Admin" autocomplete="name">
+    <label>Password (at least 10 characters)</label><input type="password" id="pw" autocomplete="new-password">
+    <label>Password again</label><input type="password" id="pw2" autocomplete="new-password">
+    <button id="b1">Create admin</button><div class="err" id="e1"></div>
+  </section>
+
+  <section id="s2" class="hidden">
+    <h2>Two-step sign-in (optional, recommended)</h2>
+    <div>Scan this with an authenticator app (any TOTP app), then type the 6-digit code.</div>
+    <div class="qr" id="qr"></div>
+    <div><small style="color:var(--dim)">Or enter the key by hand: <code id="sec"></code></small></div>
+    <label>Code</label><input type="text" id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+    <button id="b2">Turn on</button> <button class="ghost" id="b2skip">Skip for now</button>
+    <div class="err" id="e2"></div>
+    <div id="rec" class="hidden"><p>Recovery codes. Each works once if you lose the phone. Save them now; they are not shown again.</p><pre id="codes"></pre><button id="b2next">I saved them, continue</button></div>
+  </section>
+
+  <section id="s3" class="hidden">
+    <h2>Connect your agent</h2>
+    <div id="det">Looking for Claude Code on this machine…</div>
+    <button id="b3" disabled>Propose a map</button> <button class="ghost" id="b3again">Look again</button>
+    <div class="err" id="e3"></div>
+  </section>
+
+  <section id="s4" class="hidden">
+    <h2>Your map</h2>
+    <div class="sub" style="margin-bottom:8px">BRAIN routes work, the front desk talks with you in the browser, and each project gets a lead. Rename, change roles or untick what you do not want. Nothing is written yet.</div>
+    <div class="tree" id="tree"></div>
+    <h2 style="margin-top:22px">Guard hook (optional)</h2>
+    <div class="sub" style="margin-bottom:8px">A small Claude Code hook that blocks a few commands that are hard to undo (deleting /, force pushes, dropping tables). This is exactly what would change; the old file is backed up first.</div>
+    <div id="hooks"></div>
+    <h2 style="margin-top:22px">The <code>cmd</code> command</h2>
+    <label style="color:var(--fg)"><input type="checkbox" id="cli" checked> Link <code>cmd</code>, <code>heavy</code> and <code>cmd-hub</code> into <code id="clidir"></code> (existing files there are left alone)</label>
+    <div class="sub" style="margin:10px 0 0">The config goes to <code id="cfgfile"></code>.</div>
+    <button id="b4">Apply</button> <button class="ghost" id="b4back">Back</button>
+    <div class="err" id="e4"></div>
+  </section>
+
+  <section id="s5" class="hidden">
+    <h2>All set</h2>
+    <div id="sum"></div>
+    <button id="b5">Open the map</button>
+  </section>
+</main>
+<script src="/vendor/qrcode.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const api = async (u, d) => { const r = await fetch(u, d === undefined ? {} : { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(d) }); const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || r.status); return j; };
+const ROLES = ['brain', 'front', 'lead', 'project', 'worker'];
+let report = null, prop = null;
+
+function show(n) {
+  for (let i = 1; i <= 5; i++) $('s' + i).classList.toggle('hidden', i !== n);
+  [...$('steps').children].forEach((s, i) => { s.className = i + 1 === n ? 'on' : i + 1 < n ? 'done' : ''; });
+}
+function qrSvg(text) { const q = qrcode(0, 'M'); q.addData(text); q.make(); return q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); }
+function mfaShow(m) { $('qr').innerHTML = qrSvg(m.otpauth); $('sec').textContent = m.secret.replace(/(.{4})/g, '$1 ').trim(); }
+
+$('b1').onclick = async () => {
+  $('e1').textContent = '';
+  if ($('pw').value !== $('pw2').value) return ($('e1').textContent = 'The two passwords differ');
+  $('b1').disabled = true;
+  try { const j = await api('/api/setup/admin', { name: $('name').value, password: $('pw').value }); mfaShow(j.mfa); show(2); }
+  catch (e) { $('e1').textContent = e.message; }
+  $('b1').disabled = false;
+};
+$('b2').onclick = async () => {
+  $('e2').textContent = '';
+  try { const j = await api('/api/setup/mfa', { code: $('code').value }); $('codes').textContent = j.recovery.join('\n'); $('rec').classList.remove('hidden'); $('b2').disabled = $('b2skip').disabled = true; }
+  catch (e) { $('e2').textContent = e.message; }
+};
+$('b2skip').onclick = async () => { await api('/api/setup/mfa', { skip: true }).catch(() => {}); step3(); };
+$('b2next').onclick = step3;
+
+async function step3() {
+  show(3); $('b3').disabled = true; $('det').textContent = 'Looking for Claude Code on this machine…';
+  try { report = await api('/api/setup/detect'); } catch (e) { $('e3').textContent = e.message; return; }
+  const r = report, h = [];
+  h.push(`<div class="row"><div class="grow"><b>Claude Code CLI</b><small>${r.claude.found ? esc(r.claude.path) + ' · ' + esc(r.claude.version || '') : 'not found on PATH. Install it (see docs.claude.com/claude-code), sign in once with <code>claude</code>, then press Look again.'}</small></div>
+    <span class="pill ${r.claude.found ? 'ok' : 'bad'}">${r.claude.found ? 'found' : 'missing'}</span></div>`);
+  h.push(`<div class="row"><div class="grow"><b>tmux</b><small>${r.tmux.available ? 'agents run in windows of one tmux session' : 'not found: install tmux, the hub runs each agent in a tmux window'}</small></div><span class="pill ${r.tmux.available ? 'ok' : 'bad'}">${r.tmux.available ? 'found' : 'missing'}</span></div>`);
+  h.push('<h2 style="margin-top:18px">Accounts (Claude Code config dirs)</h2>');
+  if (!r.configDirs.length) h.push('<div class="sub">None yet. Run <code>claude</code> once and sign in; the hub can still start with an empty map.</div>');
+  for (const d of r.configDirs) h.push(`<div class="row"><input type="checkbox" class="acc" value="${esc(d.id)}" ${d.signedIn ? 'checked' : ''}><div class="grow"><b>${esc(d.label)}</b>
+    <small>${esc(d.dir)} · ${d.email ? esc(d.email) : 'no account e-mail'} · ${d.sessions} sessions${d.running ? ' · ' + d.running + ' running' : ''}</small></div>
+    <span class="pill ${d.signedIn ? 'ok' : 'warn'}">${d.signedIn ? 'signed in' : 'not signed in'}</span></div>`);
+  h.push('<h2 style="margin-top:18px">Running sessions</h2>');
+  if (!r.running.length) h.push('<div class="sub">No Claude session is running now. That is fine: the hub starts agents itself.</div>');
+  for (const s of r.running) h.push(`<div class="row"><input type="checkbox" class="run" value="${s.pid}" ${s.pane && !s.managed ? 'checked' : ''} ${s.pane && !s.managed ? '' : 'disabled'}><div class="grow"><b>${esc(s.name || 'claude')} · pid ${s.pid}</b>
+    <small>${esc(s.cwd || '?')} · ${s.pane ? 'tmux ' + esc(s.tmux || s.pane) : 'not in tmux (cannot be adopted; the hub can start a new one there)'}</small></div>${s.managed ? '<span class="pill">already a hub agent</span>' : ''}</div>`);
+  h.push('<h2 style="margin-top:18px">Project folders</h2>');
+  if (!r.projects.length) h.push('<div class="sub">No project folders found from past sessions. You can add projects later in Settings.</div>');
+  for (const p of r.projects.slice(0, 40)) h.push(`<div class="row"><input type="checkbox" class="proj" value="${esc(p.cwd)}" ${p.running || r.projects.indexOf(p) < 8 ? 'checked' : ''}><div class="grow"><b>${esc(p.name)}</b>
+    <small>${esc(p.cwd)} · ${esc(p.why.join(', '))}${p.lastUsed ? ' · last used ' + new Date(p.lastUsed).toLocaleDateString() : ''}</small></div>${p.running ? '<span class="pill ok">running</span>' : ''}</div>`);
+  $('det').innerHTML = h.join(''); $('b3').disabled = false;
+}
+$('b3again').onclick = step3;
+$('b3').onclick = async () => {
+  const vals = c => [...document.querySelectorAll('.' + c + ':checked')].map(x => x.value);
+  const include = { accounts: vals('acc'), projects: vals('proj'), adopt: vals('run').map(Number) };
+  if (!include.accounts.length) delete include.accounts;
+  try { prop = await api('/api/setup/proposal', { include }); } catch (e) { $('e3').textContent = e.message; return; }
+  drawTree(); show(4);
+};
+function drawTree() {
+  const h = [];
+  for (const [i, n] of prop.nodes.entries()) {
+    const core = n.id === 'brain' || n.id === 'front';
+    h.push(`<div class="row ${n.parent && n.parent !== 'brain' ? 'indent' : n.parent ? 'indent' : ''}"><input type="checkbox" data-i="${i}" class="keep" checked ${core ? 'disabled' : ''}>
+      <input type="text" data-i="${i}" class="nm" value="${esc(n.name)}" style="max-width:220px">
+      <select data-i="${i}" class="rl" ${core ? 'disabled' : ''}>${ROLES.map(r => `<option ${r === n.role ? 'selected' : ''}>${r}</option>`).join('')}</select>
+      <div class="grow"><small>${esc(n.cwd)} · account ${esc(n.account)}${n.adopt ? ' · adopts the running session in ' + esc(n.adopt.pane) : core ? '' : ' · starts when you press Start on the map'}</small></div></div>`);
+  }
+  $('tree').innerHTML = h.join('');
+  $('hooks').innerHTML = prop.hooks.map(k => `<div style="margin-bottom:12px"><label style="color:var(--fg)"><input type="checkbox" class="hk" value="${esc(k.account)}" ${k.change ? '' : 'disabled'}> ${esc(k.file)}
+    ${k.change ? '' : '<span class="pill">' + esc(k.error || k.note || 'no change') + '</span>'}</label>${k.diff ? '<pre>' + k.diff.split('\n').map(l => `<span class="${l[0] === '+' ? 'add' : l[0] === '-' ? 'del' : ''}">${esc(l)}</span>`).join('\n') + '</pre>' : ''}</div>`).join('') || '<div class="sub">No accounts.</div>';
+  $('clidir').textContent = prop.cli; $('cfgfile').textContent = prop.configFile;
+}
+$('b4back').onclick = () => show(3);
+$('b4').onclick = async () => {
+  $('e4').textContent = ''; $('b4').disabled = true;
+  const keep = new Set([...document.querySelectorAll('.keep')].filter(x => x.checked).map(x => +x.dataset.i));
+  const nodes = prop.nodes.map((n, i) => ({ ...n, name: document.querySelector(`.nm[data-i="${i}"]`).value.trim() || n.name, role: document.querySelector(`.rl[data-i="${i}"]`).value })).filter((n, i) => keep.has(i));
+  const ids = new Set(nodes.map(n => n.id));
+  for (const n of nodes) if (n.parent && !ids.has(n.parent)) n.parent = 'brain';
+  const config = { ...prop.config, projects: prop.config.projects.filter(p => nodes.some(n => n.cwd === p.cwd && n.role === 'lead')) };
+  try {
+    const r = await api('/api/setup/apply', { nodes, config, hooks: [...document.querySelectorAll('.hk:checked')].map(x => x.value), installCli: $('cli').checked });
+    $('sum').innerHTML = `<p>Config written to <code>${esc(r.config)}</code>${r.configBackup ? ' (old one kept as <code>' + esc(r.configBackup) + '</code>)' : ''}.</p>
+      <p>${r.nodes.length} agents on the map (BRAIN and the front desk included). They start when you press Start on them, or when a message reaches them.</p>
+      ${r.hooks.length ? '<p>Guard hook added to ' + r.hooks.map(h => '<code>' + esc(h.file) + '</code>' + (h.backup ? ' (backup <code>' + esc(h.backup) + '</code>)' : '')).join(', ') + '.</p>' : ''}
+      ${r.cli.length ? '<p>' + r.cli.map(c => '<code>' + esc(c.to) + '</code>: ' + esc(c.state)).join('<br>') + '</p>' : ''}`;
+    show(5);
+  } catch (e) { $('e4').textContent = e.message; }
+  $('b4').disabled = false;
+};
+$('b5').onclick = () => { location.href = '/'; };
+
+(async () => {
+  const s = await api('/api/setup/state').catch(() => ({}));
+  if (s.done && !s.needed) return (location.href = '/');
+  if (s.needed) return show(1);
+  if (!s.signedIn) return (location.href = '/login');
+  step3();
+})();
+</script>
+</body>
+</html>
